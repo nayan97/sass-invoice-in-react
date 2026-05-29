@@ -7,6 +7,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Subscriptions from "./pages/admin/subcriptions/Subscriptions";
 import SubscriptionPlan from "./pages/admin/subcriptions/SubscriptionPlan";
+import CouponsPage from "./pages/admin/subcriptions/CouponsPage";
 
 // Optional Placeholder Pages
 // Replace these with your real components later
@@ -48,7 +49,7 @@ const router = createBrowserRouter([
           },
           {
             path: "coupons",
-            element: <Placeholder title="Subscription Coupons" />,
+            element: <CouponsPage />,
           },
           {
             path: "list",

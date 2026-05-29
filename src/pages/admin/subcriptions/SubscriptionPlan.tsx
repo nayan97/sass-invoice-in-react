@@ -2,264 +2,16 @@ import React, { useState } from "react";
 import { Plus, Search, SlidersHorizontal, Pencil, Trash2, X, Loader2 } from "lucide-react";
 import {
     useGetSubscriptionPlansQuery,
-    useCreateSubscriptionPlanMutation,
-    useUpdateSubscriptionPlanMutation,
     useDeleteSubscriptionPlanMutation,
 } from "../../../store/subscriptionPlansApi";
+import type { SubscriptionPlan } from "../../../store/subscriptionPlansApi";
+import PlanModal, { EMPTY_PLAN_FORM } from "./PlanModal";
 
-import type {
-    SubscriptionPlan,
-    SubscriptionPlanPayload,
-} from "../../../store/subscriptionPlansApi";
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+const ITEMS_PER_PAGE = 7;
 
-type ModalMode = "create" | "edit";
-
-export interface PlanFeaturePayload {
-    feature_name: string;
-}
-
-export interface SubscriptionPlanPayload {
-    name: string;
-    price: string;
-    customer_limit: number;
-    product_limit: number;
-    invoice_limit: number;
-    trial_days: number;
-    is_active: boolean;
-    features: PlanFeaturePayload[];
-}
-
-// ─── Modal ───────────────────────────────────────────────────────────────────
-
-interface PlanModalProps {
-    mode: ModalMode;
-    initial: SubscriptionPlanPayload;
-    planId?: number;
-    onClose: () => void;
-}
-
-const PlanModal: React.FC<PlanModalProps> = ({ mode, initial, planId, onClose }) => {
-    const [form, setForm] = useState<SubscriptionPlanPayload>(initial);
-    const [featureInput, setFeatureInput] = useState("");
-
-    const [createPlan, { isLoading: creating }] = useCreateSubscriptionPlanMutation();
-    const [updatePlan, { isLoading: updating }] = useUpdateSubscriptionPlanMutation();
-
-    const isLoading = creating || updating;
-
-    const set = (key: keyof SubscriptionPlanPayload, value: any) =>
-        setForm((prev) => ({ ...prev, [key]: value }));
-
-    const addFeature = () => {
-        const trimmed = featureInput.trim();
-        if (!trimmed) return;
-        set("features", [...(form.features ?? []), trimmed]);
-        setFeatureInput("");
-    };
-
-    const removeFeature = (index: number) =>
-        set(
-            "features",
-            (form.features ?? []).filter((_, i) => i !== index)
-        );
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            if (mode === "create") {
-                await createPlan(form).unwrap();
-            } else if (planId !== undefined) {
-                await updatePlan({ id: planId, data: form }).unwrap();
-            }
-            onClose();
-        } catch (err) {
-            console.error("Failed to save plan:", err);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h2 className="text-base font-semibold text-gray-800">
-                        {mode === "create" ? "Add Subscription Plan" : "Edit Subscription Plan"}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
-                    {/* Name */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Plan Name</label>
-                        <input
-                            required
-                            type="text"
-                            value={form.name}
-                            onChange={(e) => set("name", e.target.value)}
-                            placeholder="e.g. Gold Plus"
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                        />
-                    </div>
-
-                    {/* Price */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Price</label>
-                        <input
-                            required
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={form.price}
-                            onChange={(e) => set("price", e.target.value)}
-                            placeholder="0.00"
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                        />
-                    </div>
-
-                    {/* Limits row */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Customer Limit</label>
-                            <input
-                                required
-                                type="number"
-                                min="0"
-                                value={form.customer_limit}
-                                onChange={(e) => set("customer_limit", Number(e.target.value))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Product Limit</label>
-                            <input
-                                required
-                                type="number"
-                                min="0"
-                                value={form.product_limit}
-                                onChange={(e) => set("product_limit", Number(e.target.value))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Limit</label>
-                            <input
-                                required
-                                type="number"
-                                min="0"
-                                value={form.invoice_limit}
-                                onChange={(e) => set("invoice_limit", Number(e.target.value))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Trial days + is_active row */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Trial Days</label>
-                            <input
-                                required
-                                type="number"
-                                min="0"
-                                value={form.trial_days}
-                                onChange={(e) => set("trial_days", Number(e.target.value))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                            <select
-                                value={form.is_active ? "active" : "inactive"}
-                                onChange={(e) => set("is_active", e.target.value === "active")}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75] bg-white"
-                            >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Features */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Features</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={featureInput}
-                                onChange={(e) => setFeatureInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        addFeature();
-                                    }
-                                }}
-                                placeholder="Type a feature and press Enter"
-                                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"
-                            />
-                            <button
-                                type="button"
-                                onClick={addFeature}
-                                className="px-3 py-2 bg-[#2D8A75] text-white rounded-lg text-sm hover:bg-[#246F5E] transition-colors"
-                            >
-                                Add
-                            </button>
-                        </div>
-
-                        {(form.features ?? []).length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                                {(form.features ?? []).map((f, i) => (
-                                    <span
-                                        key={i}
-                                        className="inline-flex items-center gap-1 bg-[#E8F5F1] text-[#2D8A75] text-xs px-2.5 py-1 rounded-full font-medium"
-                                    >
-                                        {f}
-                                        <button
-                                            type="button"
-                                            onClick={() => removeFeature(i)}
-                                            className="hover:text-red-500 transition-colors"
-                                        >
-                                            <X size={10} />
-                                        </button>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </form>
-
-                {/* Footer */}
-                <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit as any}
-                        disabled={isLoading}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#2D8A75] text-white rounded-lg hover:bg-[#246F5E] disabled:opacity-60 transition-colors"
-                    >
-                        {isLoading && <Loader2 size={14} className="animate-spin" />}
-                        {mode === "create" ? "Create Plan" : "Save Changes"}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+// ─── Delete Modal ─────────────────────────────────────────────────────────────
 
 interface DeleteModalProps {
     plan: SubscriptionPlan;
@@ -308,8 +60,6 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ plan, onClose }) => {
 };
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-
-const ITEMS_PER_PAGE = 7;
 
 const SubscriptionPlansPage: React.FC = () => {
     const { data: plans = [], isLoading, isError } = useGetSubscriptionPlansQuery();
@@ -491,8 +241,12 @@ const SubscriptionPlansPage: React.FC = () => {
                                                         <span
                                                             key={i}
                                                             className="bg-[#E8F5F1] text-[#2D8A75] text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                                            title={f.feature_value ? `${f.feature_name}: ${f.feature_value}` : f.feature_name}
                                                         >
-                                                            {typeof f === "string" ? f : f.name}
+                                                            {f.feature_name}
+                                                            {f.feature_value && (
+                                                                <span className="ml-1 opacity-70">· {f.feature_value}</span>
+                                                            )}
                                                         </span>
                                                     ))}
                                                     {plan.features.length > 2 && (
@@ -545,8 +299,10 @@ const SubscriptionPlansPage: React.FC = () => {
                     <div className="text-xs text-gray-500 font-medium">
                         Showing{" "}
                         <span className="font-bold text-gray-800">
-                            {filtered.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-                            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}
+                            {filtered.length === 0
+                                ? 0
+                                : (currentPage - 1) * ITEMS_PER_PAGE + 1}{" "}
+                            to {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}
                         </span>{" "}
                         of <span className="font-bold text-gray-800">{filtered.length}</span> results
                     </div>
@@ -591,7 +347,7 @@ const SubscriptionPlansPage: React.FC = () => {
             {modal?.type === "create" && (
                 <PlanModal
                     mode="create"
-                    initial={EMPTY_FORM}
+                    initial={EMPTY_PLAN_FORM}
                     onClose={() => setModal(null)}
                 />
             )}
@@ -608,9 +364,10 @@ const SubscriptionPlansPage: React.FC = () => {
                         invoice_limit: modal.plan.invoice_limit,
                         trial_days: modal.plan.trial_days,
                         is_active: modal.plan.is_active,
-                        features: modal.plan.features.map((f) =>
-                            typeof f === "string" ? f : f.name
-                        ),
+                        features: modal.plan.features.map((f) => ({
+                            feature_name: f.feature_name,
+                            feature_value: f.feature_value,
+                        })),
                     }}
                     onClose={() => setModal(null)}
                 />

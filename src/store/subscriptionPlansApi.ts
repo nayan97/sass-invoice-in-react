@@ -2,7 +2,11 @@ import { baseApi } from "./baseApi";
 
 export interface Feature {
     id?: number;
-    name: string;
+    plan_id?: number;
+    feature_name: string;
+    feature_value: string | null;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface SubscriptionPlan {
@@ -27,8 +31,9 @@ export interface SubscriptionPlanPayload {
     invoice_limit: number;
     trial_days: number;
     is_active: boolean;
-    features: string[];
+    features: Pick<Feature, "feature_name" | "feature_value">[];
 }
+
 export const subscriptionPlansApi = baseApi
     .enhanceEndpoints({
         addTagTypes: ["SubscriptionPlan"],
@@ -55,17 +60,9 @@ export const subscriptionPlansApi = baseApi
                                 type: "SubscriptionPlan" as const,
                                 id,
                             })),
-                            {
-                                type: "SubscriptionPlan",
-                                id: "LIST",
-                            },
+                            { type: "SubscriptionPlan", id: "LIST" },
                         ]
-                        : [
-                            {
-                                type: "SubscriptionPlan",
-                                id: "LIST",
-                            },
-                        ],
+                        : [{ type: "SubscriptionPlan", id: "LIST" }],
             }),
 
             // ================================
@@ -81,10 +78,7 @@ export const subscriptionPlansApi = baseApi
                     response.data || response,
 
                 providesTags: (_result, _error, id) => [
-                    {
-                        type: "SubscriptionPlan",
-                        id,
-                    },
+                    { type: "SubscriptionPlan", id },
                 ],
             }),
 
@@ -93,7 +87,7 @@ export const subscriptionPlansApi = baseApi
             // ================================
             createSubscriptionPlan: builder.mutation<
                 SubscriptionPlan,
-                Partial<SubscriptionPlanPayload>
+                SubscriptionPlanPayload
             >({
                 query: (body) => ({
                     url: "/subscription-plans",
@@ -105,10 +99,7 @@ export const subscriptionPlansApi = baseApi
                     response.data || response,
 
                 invalidatesTags: [
-                    {
-                        type: "SubscriptionPlan",
-                        id: "LIST",
-                    },
+                    { type: "SubscriptionPlan", id: "LIST" },
                 ],
             }),
 
@@ -117,10 +108,7 @@ export const subscriptionPlansApi = baseApi
             // ================================
             updateSubscriptionPlan: builder.mutation<
                 SubscriptionPlan,
-                {
-                    id: number;
-                    data: Partial<SubscriptionPlanPayload>;
-                }
+                { id: number; data: Partial<SubscriptionPlanPayload> }
             >({
                 query: ({ id, data }) => ({
                     url: `/subscription-plans/${id}`,
@@ -132,14 +120,8 @@ export const subscriptionPlansApi = baseApi
                     response.data || response,
 
                 invalidatesTags: (_result, _error, { id }) => [
-                    {
-                        type: "SubscriptionPlan",
-                        id,
-                    },
-                    {
-                        type: "SubscriptionPlan",
-                        id: "LIST",
-                    },
+                    { type: "SubscriptionPlan", id },
+                    { type: "SubscriptionPlan", id: "LIST" },
                 ],
             }),
 
@@ -156,14 +138,8 @@ export const subscriptionPlansApi = baseApi
                 }),
 
                 invalidatesTags: (_result, _error, id) => [
-                    {
-                        type: "SubscriptionPlan",
-                        id,
-                    },
-                    {
-                        type: "SubscriptionPlan",
-                        id: "LIST",
-                    },
+                    { type: "SubscriptionPlan", id },
+                    { type: "SubscriptionPlan", id: "LIST" },
                 ],
             }),
         }),
