@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
 @import "tailwindcss";
+@import "tw-animate-css";
+
 
 
 
@@ -23,7 +25,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #f7941d; /* Exact #fd6c00 */
+  --primary: #2f8bcc;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.96 0.01 46.57);
   --secondary-foreground: oklch(0.205 0 0);
@@ -70,17 +72,7 @@ h1 {
   line-height: 1.1;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
+
 button:hover {
   border-color: #646cff;
 }

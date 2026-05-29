@@ -32,13 +32,13 @@ const Login: React.FC = () => {
       <section className="hidden lg:flex items-center justify-center bg-[#05070d] relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 to-teal-400/5" />
         <div className="relative z-10 flex flex-col items-center gap-3">
-          {/* Replace with <img src={logo} alt="FITWELLFLOW Logo" className="max-w-[65%] object-contain" /> */}
+          {/* Replace with <img src={logo} alt="BusinessInvoice Logo" className="max-w-[65%] object-contain" /> */}
           <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-yellow-400 to-teal-400 flex items-center justify-content-center items-center justify-center">
             <svg className="w-12 h-12 text-[#05060a]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
           </div>
-          <p className="text-2xl font-semibold text-yellow-400 tracking-widest mt-2">FITWELLFLOW</p>
+          <p className="text-2xl font-semibold text-yellow-400 tracking-widest mt-2">BusinessInvoice</p>
           <p className="text-xs text-teal-400 tracking-[3px] uppercase">Simply the best fitness &amp; wellness</p>
         </div>
       </section>
@@ -62,7 +62,7 @@ const Login: React.FC = () => {
               Welcome Back to
             </h1>
             <h2 className="text-4xl sm:text-5xl font-bold text-yellow-400 mt-2 tracking-tight">
-              FITWELLFLOW
+              BusinessInvoice
             </h2>
             <p className="text-sm text-teal-400 mt-4 tracking-widest uppercase">
               Simply the best fitness and wellness
