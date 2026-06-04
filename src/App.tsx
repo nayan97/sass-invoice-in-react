@@ -8,6 +8,9 @@ import Dashboard from "./pages/admin/Dashboard";
 import SubscriptionPlan from "./pages/admin/subcriptions/SubscriptionPlan";
 import CouponsPage from "./pages/admin/subcriptions/CouponsPage";
 import SubscriptionsPage from "./pages/admin/subcriptions/SubscriptionsPage";
+import TransactionsPage from "./pages/admin/subcriptions/TransactionsPage";
+import InvoicesPage from "./pages/admin/subcriptions/InvoicesPage";
+import PricingPage from "./pages/user/PricingPage";
 
 // Optional Placeholder Pages
 // Replace these with your real components later
@@ -22,6 +25,11 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+
+    {
+    path: "/",
+    element: <PricingPage />,
   },
 
   // =========================
@@ -57,11 +65,11 @@ const router = createBrowserRouter([
           },
           {
             path: "transactions",
-            element: <Placeholder title="Transactions" />,
+            element: <TransactionsPage />,
           },
           {
             path: "invoices",
-            element: <Placeholder title="Invoices" />,
+            element: <InvoicesPage />,
           },
           {
             path: "usage",
