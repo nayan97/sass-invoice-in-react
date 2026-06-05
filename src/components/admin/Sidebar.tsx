@@ -18,6 +18,7 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [isSubscriptionsOpen, setIsSubscriptionsOpen] = useState(false);
+  const [isCompanyOpen, setIsCompanyOpen] = useState(false);
 
   const menuItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -32,6 +33,16 @@ const Sidebar: React.FC = () => {
         { name: "Transactions", href: "/dashboard/subscriptions/transactions" },
         { name: "Invoices", href: "/dashboard/subscriptions/invoices" },
         { name: "Usage", href: "/dashboard/subscriptions/usage" },
+      ]
+    },
+    {
+      name: "Company",
+      icon: Package,
+      isDropdown: true,
+      subItems: [
+        { name: "Company", href: "/dashboard/company/list" },
+        { name: "Company Address", href: "/dashboard/company/address" },
+        { name: "Company Users", href: "/dashboard/company/users" },
       ]
     },
     { name: "Products", href: "/dashboard/products", icon: Package },
@@ -61,7 +72,7 @@ const Sidebar: React.FC = () => {
             return (
               <div key={item.name} className="space-y-1">
                 <button
-                  onClick={() => setIsSubscriptionsOpen(!isSubscriptionsOpen)}
+                  onClick={() => setIsCompanyOpen(!isCompanyOpen)}
                   className={cn(
                     "group flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-transparent",
                     isAnySubItemActive && "bg-slate-50/50 font-semibold text-slate-900"
@@ -71,10 +82,10 @@ const Sidebar: React.FC = () => {
                     <item.icon className={cn("w-5 h-5 transition-colors text-slate-400 group-hover:text-primary", isAnySubItemActive && "text-primary")} />
                     <span className="font-semibold text-sm">{item.name}</span>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 transition-transform text-slate-400 group-hover:text-slate-600", isSubscriptionsOpen && "rotate-180")} />
+                  <ChevronDown className={cn("w-4 h-4 transition-transform text-slate-400 group-hover:text-slate-600", isCompanyOpen && "rotate-180")} />
                 </button>
                 
-                {isSubscriptionsOpen && (
+                {isCompanyOpen && (
                   <div className="pl-11 pr-2 space-y-1">
                     {item.subItems?.map((subItem) => {
                       const isSubActive = location.pathname === subItem.href;

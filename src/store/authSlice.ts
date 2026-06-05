@@ -4,6 +4,7 @@ interface User {
   id: number;
   name: string;
   email: string;
+  role: "super-admin" | "admin" | "staff" | "user"; // add this
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
@@ -40,7 +41,8 @@ const authSlice = createSlice({
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("access_token", access_token);
       localStorage.setItem("token_type", token_type);
-      localStorage.setItem("isAdmin", "true"); // Keeping your previous logic
+      localStorage.setItem("isAdmin", "true");
+        // localStorage.setItem("isAdmin", user.role === "super-admin" || user.role === "admin" ? "true" : "false"); // Keeping your previous logic
     },
     logout: (state) => {
       state.user = null;

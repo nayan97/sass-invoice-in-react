@@ -11,6 +11,10 @@ import SubscriptionsPage from "./pages/admin/subcriptions/SubscriptionsPage";
 import TransactionsPage from "./pages/admin/subcriptions/TransactionsPage";
 import InvoicesPage from "./pages/admin/subcriptions/InvoicesPage";
 import PricingPage from "./pages/user/PricingPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+
+import CompaniesPage from "./pages/admin/company/CompaniesPage";
 
 // Optional Placeholder Pages
 // Replace these with your real components later
@@ -18,97 +22,62 @@ const Placeholder = ({ title }: { title: string }) => (
   <div className="p-6 text-2xl font-semibold">{title}</div>
 );
 
+
 const router = createBrowserRouter([
-  // =========================
-  // Auth Routes
-  // =========================
-  {
-    path: "/login",
-    element: <Login />,
-  },
+  { path: "/login", element: <Login /> },
+  { path: "/", element: <PricingPage /> },
+  { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
-    {
-    path: "/",
-    element: <PricingPage />,
-  },
-
-  // =========================
-  // Dashboard Routes
-  // =========================
+  // ✅ Admin-only routes
   {
-    path: "/dashboard",
-    element: <AdminLayout />,
+    element: <ProtectedRoute allowedRoles={["super-admin"]} />,
     children: [
-      // Dashboard Home
       {
-        index: true,
-        element: <Dashboard />,
-      },
-
-      // =========================
-      // Subscription Module
-      // =========================
-      {
-        path: "subscriptions",
+        path: "/dashboard",
+        element: <AdminLayout />,
         children: [
+          { index: true, element: <Dashboard /> },
           {
-            path: "plan",
-            element: <SubscriptionPlan />,
+            path: "subscriptions",
+            children: [
+              { path: "plan", element: <SubscriptionPlan /> },
+              { path: "coupons", element: <CouponsPage /> },
+              { path: "list", element: <SubscriptionsPage /> },
+              { path: "transactions", element: <TransactionsPage /> },
+              { path: "invoices", element: <InvoicesPage /> },
+              { path: "usage", element: <Placeholder title="Usage Analytics" /> },
+            ],
           },
           {
-            path: "coupons",
-            element: <CouponsPage />,
+            path: "company",
+            children: [
+              { path: "list", element: <CompaniesPage /> },
+              { path: "address", element: <Placeholder title="Company Address" /> },
+              { path: "users", element: <Placeholder title="Company Users" /> },
+            ],
           },
-          {
-            path: "list",
-            element: <SubscriptionsPage />,
-          },
-          {
-            path: "transactions",
-            element: <TransactionsPage />,
-          },
-          {
-            path: "invoices",
-            element: <InvoicesPage />,
-          },
-          {
-            path: "usage",
-            element: <Placeholder title="Usage Analytics" />,
-          },
+          { path: "products", element: <Placeholder title="Products" /> },
+          { path: "orders", element: <Placeholder title="Orders" /> },
+          { path: "users", element: <Placeholder title="Users" /> },
+          { path: "settings", element: <Placeholder title="Settings" /> },
         ],
       },
+    ],
+  },
 
-      // =========================
-      // Product Routes
-      // =========================
-      {
-        path: "products",
-        element: <Placeholder title="Products" />,
-      },
+  // ✅ User-only routes (example)
+  {
+    element: <ProtectedRoute allowedRoles={["user"]} />,
+    children: [
+      { path: "/account", element: <Placeholder title="My Account" /> },
+    ],
+  },
 
-      // =========================
-      // Order Routes
-      // =========================
-      {
-        path: "orders",
-        element: <Placeholder title="Orders" />,
-      },
-
-      // =========================
-      // User Routes
-      // =========================
-      {
-        path: "users",
-        element: <Placeholder title="Users" />,
-      },
-
-      // =========================
-      // Settings Routes
-      // =========================
-      {
-        path: "settings",
-        element: <Placeholder title="Settings" />,
-      },
+  // ✅ Any authenticated user
+  {
+    element: <ProtectedRoute />, // no allowedRoles = just must be logged in
+    children: [
+      { path: "/profile", element: <Placeholder title="Profile" /> },
     ],
   },
 ]);
