@@ -1,13 +1,13 @@
 import React from "react";
 import { Check, Loader2 } from "lucide-react";
-import { useGetSubscriptionPlansQuery } from "../../store/subscriptionPlansApi";
+import { useGetSubscriptionPlanQuery } from "../../store/homeApi";
 
 const PricingPage: React.FC = () => {
     const {
         data: plans = [],
         isLoading,
         isError,
-    } = useGetSubscriptionPlansQuery();
+    } = useGetSubscriptionPlanQuery();
 
     if (isLoading) {
         return (
