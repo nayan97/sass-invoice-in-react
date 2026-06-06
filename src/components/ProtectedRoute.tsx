@@ -1,10 +1,9 @@
-// src/components/ProtectedRoute.tsx
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router";
 import type { RootState } from "../store";
 
 interface Props {
-  allowedRoles?: Array<"super-admin" |  "admin" | "staff" | "user">;
+  allowedRoles?: string[];
   redirectTo?: string;
 }
 
@@ -12,15 +11,14 @@ const ProtectedRoute: React.FC<Props> = ({
   allowedRoles,
   redirectTo = "/login",
 }) => {
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, roles } = useSelector((state: RootState) => state.auth);
 
-  // Not logged in → go to login
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Logged in but wrong role → go to unauthorized
-  if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
+  // Check if user has at least one of the allowed roles
+  if (allowedRoles && !allowedRoles.some((r) => roles.includes(r))) {
     return <Navigate to="/unauthorized" replace />;
   }
 

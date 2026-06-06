@@ -12,23 +12,45 @@ import TransactionsPage from "./pages/admin/subcriptions/TransactionsPage";
 import InvoicesPage from "./pages/admin/subcriptions/InvoicesPage";
 import PricingPage from "./pages/user/PricingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-
 import CompaniesPage from "./pages/admin/company/CompaniesPage";
 
-// Optional Placeholder Pages
-// Replace these with your real components later
 const Placeholder = ({ title }: { title: string }) => (
   <div className="p-6 text-2xl font-semibold">{title}</div>
 );
-
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/", element: <PricingPage /> },
   { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
-  // ✅ Admin-only routes
+  // ✅ super-admin + admin shared routes
+  {
+    element: <ProtectedRoute allowedRoles={["super-admin", "admin"]} />,
+    children: [
+      {
+        path: "/dashboard",
+        element: <AdminLayout />,
+        children: [
+          { index: true, element: <Dashboard /> },
+
+          // Company — shared (super-admin + admin)
+          {
+            path: "company",
+            children: [
+              { path: "list", element: <CompaniesPage /> },
+            ],
+          },
+
+          { path: "products", element: <Placeholder title="Products" /> },
+          { path: "orders", element: <Placeholder title="Orders" /> },
+          { path: "users", element: <Placeholder title="Users" /> },
+          { path: "settings", element: <Placeholder title="Settings" /> },
+        ],
+      },
+    ],
+  },
+
+  // ✅ super-admin ONLY routes
   {
     element: <ProtectedRoute allowedRoles={["super-admin"]} />,
     children: [
@@ -36,7 +58,7 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Dashboard /> },
+          // Subscriptions — super-admin only
           {
             path: "subscriptions",
             children: [
@@ -48,24 +70,33 @@ const router = createBrowserRouter([
               { path: "usage", element: <Placeholder title="Usage Analytics" /> },
             ],
           },
-          {
-            path: "company",
-            children: [
-              { path: "list", element: <CompaniesPage /> },
-              { path: "address", element: <Placeholder title="Company Address" /> },
-              { path: "users", element: <Placeholder title="Company Users" /> },
-            ],
-          },
-          { path: "products", element: <Placeholder title="Products" /> },
-          { path: "orders", element: <Placeholder title="Orders" /> },
-          { path: "users", element: <Placeholder title="Users" /> },
-          { path: "settings", element: <Placeholder title="Settings" /> },
         ],
       },
     ],
   },
 
-  // ✅ User-only routes (example)
+  // ✅ admin ONLY routes
+  {
+    element: <ProtectedRoute allowedRoles={["admin"]} />,
+    children: [
+      {
+        path: "/dashboard",
+        element: <AdminLayout />,
+        children: [
+          // Company address & users — admin only
+          {
+            path: "company",
+            children: [
+              { path: "address", element: <Placeholder title="Company Address" /> },
+              { path: "users", element: <Placeholder title="Company Users" /> },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ✅ User-only routes
   {
     element: <ProtectedRoute allowedRoles={["user"]} />,
     children: [
@@ -75,7 +106,7 @@ const router = createBrowserRouter([
 
   // ✅ Any authenticated user
   {
-    element: <ProtectedRoute />, // no allowedRoles = just must be logged in
+    element: <ProtectedRoute />,
     children: [
       { path: "/profile", element: <Placeholder title="Profile" /> },
     ],

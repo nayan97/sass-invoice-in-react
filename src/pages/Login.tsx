@@ -14,16 +14,23 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   const [login, { isLoading }] = useLoginMutation();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const userData = await login({ email, password }).unwrap();
-      dispatch(setCredentials(userData));
-      navigate("/dashboard");
-    } catch (err: any) {
-      alert(err?.data?.message || "Login failed. Please check your credentials.");
-    }
-  };
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const userData = await login({ email, password }).unwrap();
+    dispatch(setCredentials({
+      user: userData.user,
+      access_token: userData.access_token,
+      token_type: userData.token_type,
+      roles: userData.roles,
+      permissions: userData.permissions,
+    }));
+    console.log(userData);
+    navigate("/dashboard");
+  } catch (err: any) {
+    alert(err?.data?.message || "Login failed. Please check your credentials.");
+  }
+};
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-[#05060a] text-gray-200">
