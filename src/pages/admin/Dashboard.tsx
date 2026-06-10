@@ -1,51 +1,49 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
-import { 
-  Users, 
-  FileText, 
+import {
+  Users,
+  FileText,
   CheckSquare,
-  ArrowUpRight,
-  ArrowDownRight,
   Play
 } from "lucide-react";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   ResponsiveContainer,
   PieChart,
   Pie,
-    Cell
+  Cell
 } from "recharts";
 
 const Dashboard: React.FC = () => {
   // 1. Top Mini Metrics Map
   const stats = [
-    { 
-      title: "Clients Added", 
-      value: "197", 
-      change: "1.15%", 
-      trendingUp: true, 
+    {
+      title: "Clients Added",
+      value: "197",
+      change: "1.15%",
+      trendingUp: true,
       icon: Users,
-      progress: 65 
+      progress: 65
     },
-    { 
-      title: "Contracts Signed", 
-      value: "634", 
-      change: "1.15%", 
-      trendingUp: false, 
+    {
+      title: "Contracts Signed",
+      value: "634",
+      change: "1.15%",
+      trendingUp: false,
       icon: CheckSquare,
-      progress: 75 
+      progress: 75
     },
-    { 
-      title: "Invoice Sent", 
-      value: "512", 
-      change: "3.14%", 
-      trendingUp: true, 
+    {
+      title: "Invoice Sent",
+      value: "512",
+      change: "3.14%",
+      trendingUp: true,
       icon: FileText,
-      progress: 45 
+      progress: 45
     },
   ];
 
@@ -80,11 +78,15 @@ const Dashboard: React.FC = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 100 } as const
+    }
   };
 
   return (
-    <motion.div 
+    <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -101,8 +103,8 @@ const Dashboard: React.FC = () => {
       {/* TOP ROW: AD BANNER & OVERVIEW */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Welcome Callout Banner */}
-        <motion.div 
-          variants={itemVariants} 
+        <motion.div
+          variants={itemVariants}
           className="lg:col-span-5 bg-white border border-slate-100 rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden min-h-[160px]"
         >
           <div className="max-w-[65%] z-10">
@@ -114,26 +116,26 @@ const Dashboard: React.FC = () => {
           <button className="mt-4 px-4 py-2 bg-[#2f8bcc] text-white font-medium text-xs rounded-lg w-max flex items-center gap-1.5 hover:bg-[#246355] transition-colors z-10">
             <Play className="w-3 h-3 fill-current" /> Watch Tutorial
           </button>
-          
+
           {/* Decorative Vector Graphic placement wrapper */}
           <div className="absolute right-2 bottom-0 w-[140px] h-[140px] opacity-95 pointer-events-none">
-            <img 
-              src="https://illustrations.popsy.co/flat/working-from-home.svg" 
-              alt="Illustration" 
+            <img
+              src="https://illustrations.popsy.co/flat/working-from-home.svg"
+              alt="Illustration"
               className="object-contain w-full h-full object-bottom"
             />
           </div>
         </motion.div>
 
         {/* This Week's Overview Aggregators */}
-        <motion.div 
-          variants={itemVariants} 
+        <motion.div
+          variants={itemVariants}
           className="lg:col-span-7 bg-white border border-slate-100 rounded-xl p-6 shadow-sm flex flex-col justify-between"
         >
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-sm font-bold text-slate-900">This Week's Overview</h3>
             <div className="flex items-center gap-1 text-xs text-slate-500">
-              <span className="font-medium text-slate-400">SORT BY:</span> 
+              <span className="font-medium text-slate-400">SORT BY:</span>
               <span className="font-semibold text-slate-700 cursor-pointer flex items-center gap-0.5">
                 Current Week <span className="text-[10px]">▼</span>
               </span>
@@ -161,11 +163,11 @@ const Dashboard: React.FC = () => {
                 <div className="w-12 h-12 relative flex items-center justify-center shrink-0">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle cx="24" cy="24" r="18" stroke="#F1F5F9" strokeWidth="4" fill="transparent" />
-                    <circle 
-                      cx="24" cy="24" r="18" 
-                      stroke={stat.trendingUp ? "#2f8bcc" : "#DE6B6B"} 
-                      strokeWidth="4" 
-                      fill="transparent" 
+                    <circle
+                      cx="24" cy="24" r="18"
+                      stroke={stat.trendingUp ? "#2f8bcc" : "#DE6B6B"}
+                      strokeWidth="4"
+                      fill="transparent"
                       strokeDasharray={113}
                       strokeDashoffset={113 - (113 * stat.progress) / 100}
                     />
@@ -180,8 +182,8 @@ const Dashboard: React.FC = () => {
       {/* BOTTOM ROW: CHARTS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Payment Activity Column */}
-        <motion.div 
-          variants={itemVariants} 
+        <motion.div
+          variants={itemVariants}
           className="lg:col-span-8 bg-white border border-slate-100 rounded-xl p-6 shadow-sm"
         >
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
@@ -189,7 +191,7 @@ const Dashboard: React.FC = () => {
               <h3 className="text-sm font-bold text-slate-900 mb-1">Payment Activity</h3>
               <p className="text-2xl font-bold text-slate-900 tracking-tight">$23,590.00</p>
             </div>
-            
+
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4 text-xs">
                 <div>
@@ -206,10 +208,10 @@ const Dashboard: React.FC = () => {
               {/* Time Frame Filter Pill */}
               <div className="flex items-center bg-slate-50 p-0.5 rounded-lg border border-slate-100 text-[11px] font-bold">
                 {["ALL", "1M", "6M", "1Y"].map((tab) => (
-                  <button 
-                    key={tab} 
+                  <button
+                    key={tab}
                     className={cn(
-                      "px-2.5 py-1 rounded-md transition-colors", 
+                      "px-2.5 py-1 rounded-md transition-colors",
                       tab === "1Y" ? "bg-blue-500 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
                     )}
                   >
@@ -224,24 +226,24 @@ const Dashboard: React.FC = () => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={activityData} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fill: '#94A3B8', fontSize: 11 }}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fill: '#94A3B8', fontSize: 11 }}
                   domain={[0, 60]}
                   ticks={[0, 10, 20, 30, 40, 50, 60]}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill="#2f8bcc" 
-                  radius={[3, 3, 0, 0]} 
-                  maxBarSize={12} 
+                <Bar
+                  dataKey="value"
+                  fill="#2f8bcc"
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={12}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -249,14 +251,14 @@ const Dashboard: React.FC = () => {
         </motion.div>
 
         {/* Structure Allocation Column */}
-        <motion.div 
-          variants={itemVariants} 
+        <motion.div
+          variants={itemVariants}
           className="lg:col-span-4 bg-white border border-slate-100 rounded-xl p-6 shadow-sm flex flex-col justify-between"
         >
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-bold text-slate-900">Structure</h3>
             <div className="flex items-center gap-1 text-xs text-slate-500">
-              <span className="font-medium text-slate-400">SORT BY:</span> 
+              <span className="font-medium text-slate-400">SORT BY:</span>
               <span className="font-semibold text-slate-700 cursor-pointer flex items-center gap-0.5">
                 Weekly <span className="text-[10px]">▼</span>
               </span>

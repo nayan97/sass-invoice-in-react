@@ -33,6 +33,7 @@ export interface Company {
     updated_at: string;
     deleted_at: string | null;
     addresses: Address[];
+    companyUsers?: { user_id: number; role: string; is_active: boolean; joined_at: string }[];
 }
 
 export interface CompanyPayload {
@@ -50,6 +51,22 @@ export const companyApi = baseApi
     })
     .injectEndpoints({
         endpoints: (builder) => ({
+
+            // ================================
+            // CREATE COMPANY
+            // ================================
+            createCompany: builder.mutation<Company, CompanyPayload>({
+                query: (data) => ({
+                    url: `/companies`,
+                    method: "POST",
+                    body: data,
+                }),
+
+                transformResponse: (response: any) =>
+                    response.data || response,
+
+                invalidatesTags: [{ type: "Company", id: "LIST" }],
+            }),
 
             // ================================
             // GET ALL COMPANIES
@@ -120,6 +137,7 @@ export const companyApi = baseApi
     });
 
 export const {
+    useCreateCompanyMutation,
     useGetAllCompaniesQuery,
     useGetCompanyByIdQuery,
     useUpdateCompanyMutation,

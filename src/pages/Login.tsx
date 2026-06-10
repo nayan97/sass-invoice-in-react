@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Eye, EyeOff } from "lucide-react";
 import { useLoginMutation } from "../store/authApi";
 import { setCredentials } from "../store/authSlice";
 
@@ -14,142 +14,115 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   const [login, { isLoading }] = useLoginMutation();
 
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    const userData = await login({ email, password }).unwrap();
-    dispatch(setCredentials({
-      user: userData.user,
-      access_token: userData.access_token,
-      token_type: userData.token_type,
-      roles: userData.roles,
-      permissions: userData.permissions,
-    }));
-    console.log(userData);
-    navigate("/dashboard");
-  } catch (err: any) {
-    alert(err?.data?.message || "Login failed. Please check your credentials.");
-  }
-};
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const userData = await login({ email, password }).unwrap();
+      dispatch(setCredentials({
+        user: userData.user,
+        access_token: userData.access_token,
+        token_type: userData.token_type,
+        roles: userData.roles,
+        permissions: userData.permissions,
+        company_id: userData.company_id,
+      }));
+
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirect") || "/dashboard";
+      navigate(redirectTo);
+    } catch (err: any) {
+      alert(err?.data?.message || "Login failed. Please check your credentials.");
+    }
+  };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-[#05060a] text-gray-200">
+    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center px-4 py-10 font-sans text-[#333333]">
+      <div className="w-full max-w-md">
 
-      {/* Left side — branding */}
-      <section className="hidden lg:flex items-center justify-center bg-[#05070d] relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 to-teal-400/5" />
-        <div className="relative z-10 flex flex-col items-center gap-3">
-          {/* Replace with <img src={logo} alt="BusinessInvoice Logo" className="max-w-[65%] object-contain" /> */}
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-yellow-400 to-teal-400 flex items-center justify-content-center items-center justify-center">
-            <svg className="w-12 h-12 text-[#05060a]" fill="currentColor" viewBox="0 0 24 24">
+        {/* Logo / Brand */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-[#2D8A75] flex items-center justify-center mb-3 shadow-sm">
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
           </div>
-          <p className="text-2xl font-semibold text-yellow-400 tracking-widest mt-2">BusinessInvoice</p>
-          <p className="text-xs text-teal-400 tracking-[3px] uppercase">Simply the best fitness &amp; wellness</p>
+          <h1 className="text-[22px] font-bold text-slate-800 tracking-tight">BusinessInvoice</h1>
+          <p className="text-[11px] text-gray-400 font-medium uppercase tracking-widest mt-1">
+            Subscription Management
+          </p>
         </div>
-      </section>
 
-      {/* Right side — form */}
-      <section className="flex items-center justify-center px-5 py-10 sm:px-8 lg:px-16 bg-[#05060a]">
-        <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="bg-white rounded-lg border border-gray-100 shadow-sm px-8 py-8">
 
-          {/* Mobile logo */}
-          <div className="flex justify-center mb-10 lg:hidden">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-teal-400 flex items-center justify-center">
-              <svg className="w-8 h-8 text-[#05060a]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Heading */}
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl sm:text-4xl font-semibold text-white leading-tight">
-              Welcome Back to
-            </h1>
-            <h2 className="text-4xl sm:text-5xl font-bold text-yellow-400 mt-2 tracking-tight">
-              BusinessInvoice
+          <div className="mb-6">
+            <h2 className="text-[15px] font-bold tracking-wide text-slate-800 uppercase">
+              Sign In
             </h2>
-            <p className="text-sm text-teal-400 mt-4 tracking-widest uppercase">
-              Simply the best fitness and wellness
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Enter your credentials to continue</p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
 
             {/* Email */}
             <div>
-              <label className="text-xs uppercase tracking-wider text-gray-400 font-medium">
-                Email Address <span className="text-red-500">*</span>
+              <label className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-1.5">
+                Email Address <span className="text-red-400">*</span>
               </label>
-              <div className="mt-2 relative">
+              <div className="relative">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="emailaddress@mail.com"
                   required
-                  className="w-full bg-transparent border-b border-gray-600 py-3 pr-10 text-sm text-white placeholder-gray-600 outline-none focus:border-teal-400 transition-colors"
+                  className="w-full border border-gray-200 bg-white pl-9 pr-4 py-2.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#2D8A75] text-gray-700 placeholder-gray-400 transition-colors"
                 />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 text-gray-500 pointer-events-none">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                  </svg>
-                </div>
+                <Mail className="absolute left-3 top-2.5 text-gray-400" size={16} />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-xs uppercase tracking-wider text-gray-400 font-medium">
-                Password <span className="text-red-500">*</span>
+              <label className="text-[11px] text-gray-400 font-medium uppercase tracking-wide block mb-1.5">
+                Password <span className="text-red-400">*</span>
               </label>
-              <div className="mt-2 relative">
+              <div className="relative">
                 <input
-                  id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-transparent border-b border-gray-600 py-3 pr-10 text-sm text-white placeholder-gray-600 outline-none focus:border-teal-400 transition-colors"
+                  className="w-full border border-gray-200 bg-white pl-4 pr-10 py-2.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#2D8A75] text-gray-700 placeholder-gray-400 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-white transition-colors"
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-700 transition-colors"
                   aria-label="Toggle password visibility"
                 >
-                  {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  )}
+                  {showPassword
+                    ? <EyeOff size={16} />
+                    : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
             {/* Remember me / Forgot */}
-            <div className="flex items-center justify-between gap-4 pt-2">
-              <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-600 bg-[#1f2937] accent-yellow-400 cursor-pointer"
+                  className="w-4 h-4 rounded border-gray-300 accent-[#2D8A75] cursor-pointer"
                 />
                 Remember me
               </label>
               <Link
                 to="/forgot-password"
-                className="text-xs text-gray-500 hover:text-yellow-400 transition-colors"
+                className="text-xs text-[#2D8A75] hover:text-[#256d5e] font-medium transition-colors"
               >
                 Forgot Password?
               </Link>
@@ -159,14 +132,32 @@ const handleLogin = async (e: React.FormEvent) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-yellow-400 text-black py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-yellow-500 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-[#2D8A75] text-white py-2.5 rounded text-sm font-semibold uppercase tracking-widest hover:bg-[#256d5e] transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Login"}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In"}
             </button>
           </form>
 
+          {/* Divider */}
+          <div className="border-t border-gray-100 mt-6 pt-5 text-center">
+            <p className="text-xs text-gray-500">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="text-[#2D8A75] hover:text-[#256d5e] font-semibold transition-colors"
+              >
+                Register Here
+              </Link>
+            </p>
+          </div>
         </div>
-      </section>
+
+        {/* Footer note */}
+        <p className="text-center text-[11px] text-gray-400 mt-5">
+          © {new Date().getFullYear()} BusinessInvoice. All rights reserved.
+        </p>
+
+      </div>
     </div>
   );
 };

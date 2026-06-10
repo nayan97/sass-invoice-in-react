@@ -1,12 +1,12 @@
 import { baseApi } from "./baseApi";
 
 export interface Feature {
-    id?: number;
-    plan_id?: number;
+    id: number;
+    plan_id: number;
     feature_name: string;
     feature_value: string | null;
-    created_at?: string;
-    updated_at?: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface SubscriptionPlan {
@@ -20,7 +20,7 @@ export interface SubscriptionPlan {
     is_active: boolean;
     created_at: string;
     updated_at: string;
-    features: Feature[];
+    features?: Feature[];
 }
 
 export interface SubscriptionPlanPayload {
@@ -31,7 +31,7 @@ export interface SubscriptionPlanPayload {
     invoice_limit: number;
     trial_days: number;
     is_active: boolean;
-    features: Pick<Feature, "feature_name" | "feature_value">[];
+    features?: Pick<Feature, "feature_name" | "feature_value">[];
 }
 
 export const subscriptionPlansApi = baseApi

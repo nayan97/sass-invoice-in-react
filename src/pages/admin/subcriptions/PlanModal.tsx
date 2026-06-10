@@ -32,9 +32,7 @@ export const EMPTY_PLAN_FORM: SubscriptionPlanPayload = {
     features: [],
 };
 
-// ─── Numeric input helper ─────────────────────────────────────────────────────
-// Stores value as string internally so the user can clear/type freely,
-// but converts to number before submitting.
+// ─── Numeric Input ────────────────────────────────────────────────────────────
 
 interface NumericInputProps {
     value: number;
@@ -51,33 +49,24 @@ const NumericInput: React.FC<NumericInputProps> = ({
     min = 0,
     className = "",
 }) => {
-    const [raw, setRaw] = useState<string>(value === 0 ? "" : String(value));
+    const [raw, setRaw] = useState<string>(value === 0 ? "0" : String(value));
+
+    React.useEffect(() => {
+        setRaw(value === 0 ? "0" : String(value));
+    }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const input = e.target.value;
-        // Allow only digits
         if (!/^\d*$/.test(input)) return;
         setRaw(input);
         onChange(input === "" ? 0 : parseInt(input, 10));
     };
 
     const handleBlur = () => {
-        // Normalise on blur: empty → show "0"
-        if (raw === "" || raw === undefined) {
-            setRaw("0");
-            onChange(0);
-        } else {
-            // Remove leading zeros
-            const normalised = String(parseInt(raw, 10));
-            setRaw(normalised);
-            onChange(parseInt(normalised, 10));
-        }
+        const normalised = raw === "" ? "0" : String(parseInt(raw, 10));
+        setRaw(normalised);
+        onChange(parseInt(normalised, 10));
     };
-
-    // Keep in sync when parent resets the form
-    React.useEffect(() => {
-        setRaw(value === 0 ? "0" : String(value));
-    }, [value]);
 
     return (
         <input
@@ -97,40 +86,35 @@ const NumericInput: React.FC<NumericInputProps> = ({
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const PlanModal: React.FC<PlanModalProps> = ({ mode, initial, planId, onClose }) => {
-    const [form, setForm] = useState<SubscriptionPlanPayload>(initial);
+    const [form, setForm] = useState<SubscriptionPlanPayload>({
+        ...initial,
+        features: initial.features ?? [],
+    });
 
     const [createPlan, { isLoading: creating }] = useCreateSubscriptionPlanMutation();
     const [updatePlan, { isLoading: updating }] = useUpdateSubscriptionPlanMutation();
 
     const isLoading = creating || updating;
 
-    // ── Field helpers ──
     const set = <K extends keyof SubscriptionPlanPayload>(
         key: K,
         value: SubscriptionPlanPayload[K]
     ) => setForm((prev) => ({ ...prev, [key]: value }));
 
     // ── Feature helpers ──
-    const addFeature = () =>
-        set("features", [
-            ...form.features,
-            { feature_name: "", feature_value: null },
-        ]);
+    const features = form.features ?? [];
 
-    const updateFeature = (
-        index: number,
-        field: keyof FeatureRow,
-        value: string | null
-    ) =>
+    const addFeature = () =>
+        set("features", [...features, { feature_name: "", feature_value: null }]);
+
+    const updateFeature = (index: number, field: keyof FeatureRow, value: string | null) =>
         set(
             "features",
-            form.features.map((f, i) =>
-                i === index ? { ...f, [field]: value } : f
-            )
+            features.map((f, i) => (i === index ? { ...f, [field]: value } : f))
         );
 
     const removeFeature = (index: number) =>
-        set("features", form.features.filter((_, i) => i !== index));
+        set("features", features.filter((_, i) => i !== index));
 
     // ── Submit ──
     const handleSubmit = async (e: React.FormEvent) => {
@@ -262,20 +246,18 @@ const PlanModal: React.FC<PlanModalProps> = ({ mode, initial, planId, onClose })
                             </button>
                         </div>
 
-                        {form.features.length === 0 ? (
+                        {features.length === 0 ? (
                             <p className="text-xs text-gray-400 py-2 text-center border border-dashed border-gray-200 rounded-lg">
                                 No features yet. Click "Add Feature" to add one.
                             </p>
                         ) : (
                             <div className="space-y-2">
-                                {/* Column headers */}
                                 <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
                                     <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide px-1">Feature Name</span>
                                     <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide px-1">Value (optional)</span>
                                     <span />
                                 </div>
-
-                                {form.features.map((f, i) => (
+                                {features.map((f, i) => (
                                     <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
                                         <input
                                             type="text"
@@ -288,11 +270,7 @@ const PlanModal: React.FC<PlanModalProps> = ({ mode, initial, planId, onClose })
                                             type="text"
                                             value={f.feature_value ?? ""}
                                             onChange={(e) =>
-                                                updateFeature(
-                                                    i,
-                                                    "feature_value",
-                                                    e.target.value === "" ? null : e.target.value
-                                                )
+                                                updateFeature(i, "feature_value", e.target.value === "" ? null : e.target.value)
                                             }
                                             placeholder="e.g. 500 / Unlimited"
                                             className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75]"

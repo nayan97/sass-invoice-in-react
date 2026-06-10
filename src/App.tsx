@@ -3,15 +3,18 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import "./App.css";
 
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
-import SubscriptionPlan from "./pages/admin/subcriptions/SubscriptionPlan";
+import SubscriptionPlansPage from "./pages/admin/subcriptions/SubscriptionPlansPage";
 import CouponsPage from "./pages/admin/subcriptions/CouponsPage";
 import SubscriptionsPage from "./pages/admin/subcriptions/SubscriptionsPage";
 import TransactionsPage from "./pages/admin/subcriptions/TransactionsPage";
 import InvoicesPage from "./pages/admin/subcriptions/InvoicesPage";
 import PricingPage from "./pages/user/PricingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+import CompanyUsersPage from "./pages/admin/company/CompanyUsersPage";
 import CompaniesPage from "./pages/admin/company/CompaniesPage";
 
 const Placeholder = ({ title }: { title: string }) => (
@@ -20,6 +23,7 @@ const Placeholder = ({ title }: { title: string }) => (
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
   { path: "/", element: <PricingPage /> },
   { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
@@ -62,7 +66,7 @@ const router = createBrowserRouter([
           {
             path: "subscriptions",
             children: [
-              { path: "plan", element: <SubscriptionPlan /> },
+              { path: "plan", element: <SubscriptionPlansPage /> },
               { path: "coupons", element: <CouponsPage /> },
               { path: "list", element: <SubscriptionsPage /> },
               { path: "transactions", element: <TransactionsPage /> },
@@ -87,8 +91,14 @@ const router = createBrowserRouter([
           {
             path: "company",
             children: [
-              { path: "address", element: <Placeholder title="Company Address" /> },
-              { path: "users", element: <Placeholder title="Company Users" /> },
+              {
+                path: ":companyId/address",
+                element: <Placeholder title="Company Address" />,
+              },
+              {
+                path: ":companyId/users",
+                element: <CompanyUsersPage />,
+              },
             ],
           },
         ],

@@ -77,25 +77,7 @@ export const subscriptionApi = baseApi
                 ],
             }),
 
-            // ================================
-            // CREATE SUBSCRIPTION
-            // ================================
-            createSubscription: builder.mutation<
-                Subscription,
-                SubscriptionPayload
-            >({
-                query: (body) => ({
-                    url: "/subscriptions",
-                    method: "POST",
-                    body,
-                }),
-
-                transformResponse: (response: any) =>
-                    response.data || response,
-
-                invalidatesTags: [{ type: "Subscription", id: "LIST" }],
-            }),
-
+ 
             // ================================
             // UPDATE SUBSCRIPTION
             // ================================
@@ -105,7 +87,7 @@ export const subscriptionApi = baseApi
             >({
                 query: ({ id, data }) => ({
                     url: `/subscriptions/${id}`,
-                    method: "PUT",
+                    method: "POST",
                     body: data,
                 }),
 
@@ -159,7 +141,6 @@ export const subscriptionApi = baseApi
 export const {
     useGetSubscriptionsQuery,
     useGetSubscriptionByIdQuery,
-    useCreateSubscriptionMutation,
     useUpdateSubscriptionMutation,
     useCancelSubscriptionMutation,
     useDeleteSubscriptionMutation,

@@ -1,23 +1,26 @@
 import React, { useState } from "react";
-import { Plus, Search, SlidersHorizontal, Pencil, Trash2, Ban, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, Pencil, Trash2, Ban, Loader2 } from "lucide-react";
 import {
     useGetSubscriptionsQuery,
     useDeleteSubscriptionMutation,
     useCancelSubscriptionMutation,
+    useUpdateSubscriptionMutation,
 } from "../../../store/subscriptionApi";
-import type { Subscription, SubscriptionStatus } from "../../../store/subscriptionApi";
-import SubscriptionModal, { EMPTY_SUBSCRIPTION_FORM } from "./SubscriptionModal";
+import { useGetSubscriptionPlansQuery } from "../../../store/subscriptionPlansApi";
+import { useGetCouponsQuery } from "../../../store/couponApi";
+import type { Subscription, SubscriptionStatus, SubscriptionPayload } from "../../../store/subscriptionApi";
+import SubscriptionEditModal from "./SubscriptionEditModal";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ITEMS_PER_PAGE = 7;
 
 const STATUS_STYLES: Record<SubscriptionStatus, string> = {
-    trial:     "bg-[#EDE9FE] text-[#7C3AED]",
-    active:    "bg-[#DCFCE7] text-[#16A34A]",
+    trial: "bg-[#EDE9FE] text-[#7C3AED]",
+    active: "bg-[#DCFCE7] text-[#16A34A]",
     cancelled: "bg-[#FFE4E6] text-[#F43F5E]",
-    expired:   "bg-[#F3F4F6] text-[#6B7280]",
-    pending:   "bg-[#FEF3C7] text-[#D97706]",
+    expired: "bg-[#F3F4F6] text-[#6B7280]",
+    pending: "bg-[#FEF3C7] text-[#D97706]",
 };
 
 const STATUS_TABS: ("all" | SubscriptionStatus)[] = [
@@ -63,7 +66,10 @@ const CancelModal: React.FC<CancelModalProps> = ({ subscription, onClose }) => {
                     <span className="font-semibold text-gray-700">#{subscription.company_id}</span>?
                 </p>
                 <div className="flex justify-end gap-2">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
                         Keep Active
                     </button>
                     <button
@@ -107,10 +113,14 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ subscription, onClose }) => {
                     Permanently delete the{" "}
                     <span className="font-semibold text-gray-700">{subscription.plan?.name}</span>{" "}
                     subscription for company{" "}
-                    <span className="font-semibold text-gray-700">#{subscription.company_id}</span>? This cannot be undone.
+                    <span className="font-semibold text-gray-700">#{subscription.company_id}</span>?
+                    This cannot be undone.
                 </p>
                 <div className="flex justify-end gap-2">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
                         Cancel
                     </button>
                     <button
@@ -131,18 +141,38 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ subscription, onClose }) => {
 
 const SubscriptionsPage: React.FC = () => {
     const { data: subscriptions = [], isLoading, isError } = useGetSubscriptionsQuery();
+    const { data: plans = [] } = useGetSubscriptionPlansQuery();
+    const { data: coupons = [] } = useGetCouponsQuery();
+    const [updateSubscription, { isLoading: updating }] = useUpdateSubscriptionMutation();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<"all" | SubscriptionStatus>("all");
     const [currentPage, setCurrentPage] = useState(1);
 
     const [modal, setModal] = useState<
-        | { type: "create" }
         | { type: "edit"; sub: Subscription }
         | { type: "cancel"; sub: Subscription }
         | { type: "delete"; sub: Subscription }
         | null
     >(null);
+
+    // ── Edit handler ──
+
+    const handleSave = async (id: number, data: SubscriptionPayload) => {
+        try {
+            await updateSubscription({
+                id,
+                data: {
+                    ...data,
+                    // store's SubscriptionPayload expects coupon_id: string | null
+                    coupon_id: data.coupon_id !== null ? String(data.coupon_id) : undefined,
+                } as any,
+            }).unwrap();
+            setModal(null);
+        } catch (err) {
+            console.error("Failed to update subscription:", err);
+        }
+    };
 
     // ── Filtering ──
     const filtered = subscriptions.filter((s) => {
@@ -181,15 +211,7 @@ const SubscriptionsPage: React.FC = () => {
             </div>
 
             {/* Actions Bar */}
-            <div className="flex justify-between items-center mb-6">
-                <button
-                    onClick={() => setModal({ type: "create" })}
-                    className="flex items-center gap-2 bg-[#2D8A75] hover:bg-[#246F5E] text-white px-4 py-2 rounded text-sm font-medium shadow-sm transition-colors"
-                >
-                    <Plus size={16} />
-                    Add Subscription
-                </button>
-
+            <div className="flex justify-end items-center mb-6">
                 <div className="flex items-center gap-2">
                     <div className="relative">
                         <input
@@ -222,11 +244,10 @@ const SubscriptionsPage: React.FC = () => {
                                 setFilterStatus(tab);
                                 setCurrentPage(1);
                             }}
-                            className={`pb-3 px-4 text-sm font-medium capitalize whitespace-nowrap transition-all relative ${
-                                filterStatus === tab
-                                    ? "text-[#2D8A75] font-semibold"
-                                    : "text-gray-500 hover:text-gray-800"
-                            }`}
+                            className={`pb-3 px-4 text-sm font-medium capitalize whitespace-nowrap transition-all relative ${filterStatus === tab
+                                ? "text-[#2D8A75] font-semibold"
+                                : "text-gray-500 hover:text-gray-800"
+                                }`}
                         >
                             {tab}
                             {filterStatus === tab && (
@@ -417,11 +438,10 @@ const SubscriptionsPage: React.FC = () => {
                                 <button
                                     key={page}
                                     onClick={() => goToPage(page)}
-                                    className={`w-7 h-7 flex items-center justify-center rounded font-bold transition-colors ${
-                                        page === currentPage
-                                            ? "bg-[#2D8A75] text-white"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                    }`}
+                                    className={`w-7 h-7 flex items-center justify-center rounded font-bold transition-colors ${page === currentPage
+                                        ? "bg-[#2D8A75] text-white"
+                                        : "text-gray-600 hover:bg-gray-100"
+                                        }`}
                                 >
                                     {page}
                                 </button>
@@ -439,17 +459,8 @@ const SubscriptionsPage: React.FC = () => {
             </div>
 
             {/* Modals */}
-            {modal?.type === "create" && (
-                <SubscriptionModal
-                    mode="create"
-                    initial={EMPTY_SUBSCRIPTION_FORM}
-                    onClose={() => setModal(null)}
-                />
-            )}
-
             {modal?.type === "edit" && (
-                <SubscriptionModal
-                    mode="edit"
+                <SubscriptionEditModal
                     subscriptionId={modal.sub.id}
                     initial={{
                         company_id: modal.sub.company_id,
@@ -459,6 +470,10 @@ const SubscriptionsPage: React.FC = () => {
                         end_date: modal.sub.end_date ? modal.sub.end_date.split("T")[0] : null,
                         status: modal.sub.status,
                     }}
+                    plans={plans}
+                    coupons={coupons}
+                    isSubmitting={updating}
+                    onSave={handleSave}
                     onClose={() => setModal(null)}
                 />
             )}

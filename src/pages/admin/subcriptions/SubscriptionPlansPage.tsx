@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, SlidersHorizontal, Pencil, Trash2, X, Loader2 } from "lucide-react";
+import { Plus, Search, SlidersHorizontal, Pencil, Trash2, Loader2 } from "lucide-react";
 import {
     useGetSubscriptionPlansQuery,
     useDeleteSubscriptionPlanMutation,
@@ -215,81 +215,84 @@ const SubscriptionPlansPage: React.FC = () => {
                             )}
 
                             {!isLoading &&
-                                paginated.map((plan, index) => (
-                                    <tr key={plan.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="py-3.5 px-6 text-gray-400 font-medium">
-                                            {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
-                                        </td>
-                                        <td className="py-3.5 px-4 text-gray-900 font-semibold">{plan.name}</td>
-                                        <td className="py-3.5 px-4 text-gray-800 font-semibold">
-                                            {formatPrice(plan.price)}
-                                        </td>
-                                        <td className="py-3.5 px-4 text-gray-600">
-                                            {plan.customer_limit.toLocaleString()}
-                                        </td>
-                                        <td className="py-3.5 px-4 text-gray-600">
-                                            {plan.product_limit.toLocaleString()}
-                                        </td>
-                                        <td className="py-3.5 px-4 text-gray-600">
-                                            {plan.invoice_limit.toLocaleString()}
-                                        </td>
-                                        <td className="py-3.5 px-4 text-gray-600">{plan.trial_days}d</td>
-                                        <td className="py-3.5 px-4">
-                                            {plan.features.length > 0 ? (
-                                                <div className="flex flex-wrap gap-1">
-                                                    {plan.features.slice(0, 2).map((f, i) => (
-                                                        <span
-                                                            key={i}
-                                                            className="bg-[#E8F5F1] text-[#2D8A75] text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                                            title={f.feature_value ? `${f.feature_name}: ${f.feature_value}` : f.feature_name}
-                                                        >
-                                                            {f.feature_name}
-                                                            {f.feature_value && (
-                                                                <span className="ml-1 opacity-70">· {f.feature_value}</span>
-                                                            )}
-                                                        </span>
-                                                    ))}
-                                                    {plan.features.length > 2 && (
-                                                        <span className="text-[10px] text-gray-400 font-medium">
-                                                            +{plan.features.length - 2} more
-                                                        </span>
-                                                    )}
+                                paginated.map((plan, index) => {
+                                    const features = plan.features ?? [];
+                                    return (
+                                        <tr key={plan.id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td className="py-3.5 px-6 text-gray-400 font-medium">
+                                                {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-900 font-semibold">{plan.name}</td>
+                                            <td className="py-3.5 px-4 text-gray-800 font-semibold">
+                                                {formatPrice(plan.price)}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">
+                                                {plan.customer_limit.toLocaleString()}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">
+                                                {plan.product_limit.toLocaleString()}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">
+                                                {plan.invoice_limit.toLocaleString()}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">{plan.trial_days}d</td>
+                                            <td className="py-3.5 px-4">
+                                                {features.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {features.slice(0, 2).map((f, i) => (
+                                                            <span
+                                                                key={i}
+                                                                className="bg-[#E8F5F1] text-[#2D8A75] text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                                                title={f.feature_value ? `${f.feature_name}: ${f.feature_value}` : f.feature_name}
+                                                            >
+                                                                {f.feature_name}
+                                                                {f.feature_value && (
+                                                                    <span className="ml-1 opacity-70">· {f.feature_value}</span>
+                                                                )}
+                                                            </span>
+                                                        ))}
+                                                        {features.length > 2 && (
+                                                            <span className="text-[10px] text-gray-400 font-medium">
+                                                                +{features.length - 2} more
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-300 text-xs">—</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3.5 px-4">
+                                                <span
+                                                    className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                                                        plan.is_active
+                                                            ? "bg-[#DCFCE7] text-[#16A34A]"
+                                                            : "bg-[#FFE4E6] text-[#F43F5E]"
+                                                    }`}
+                                                >
+                                                    {plan.is_active ? "Active" : "Inactive"}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 px-6">
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    <button
+                                                        onClick={() => setModal({ type: "edit", plan })}
+                                                        className="p-1.5 bg-[#E0ECFB] hover:bg-blue-100 text-[#4A90E2] rounded transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Pencil size={13} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setModal({ type: "delete", plan })}
+                                                        className="p-1.5 bg-[#FFE4E6] hover:bg-red-100 text-[#F43F5E] rounded transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
                                                 </div>
-                                            ) : (
-                                                <span className="text-gray-300 text-xs">—</span>
-                                            )}
-                                        </td>
-                                        <td className="py-3.5 px-4">
-                                            <span
-                                                className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
-                                                    plan.is_active
-                                                        ? "bg-[#DCFCE7] text-[#16A34A]"
-                                                        : "bg-[#FFE4E6] text-[#F43F5E]"
-                                                }`}
-                                            >
-                                                {plan.is_active ? "Active" : "Inactive"}
-                                            </span>
-                                        </td>
-                                        <td className="py-3.5 px-6">
-                                            <div className="flex items-center justify-center gap-1.5">
-                                                <button
-                                                    onClick={() => setModal({ type: "edit", plan })}
-                                                    className="p-1.5 bg-[#E0ECFB] hover:bg-blue-100 text-[#4A90E2] rounded transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Pencil size={13} />
-                                                </button>
-                                                <button
-                                                    onClick={() => setModal({ type: "delete", plan })}
-                                                    className="p-1.5 bg-[#FFE4E6] hover:bg-red-100 text-[#F43F5E] rounded transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={13} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                         </tbody>
                     </table>
                 </div>
@@ -299,10 +302,8 @@ const SubscriptionPlansPage: React.FC = () => {
                     <div className="text-xs text-gray-500 font-medium">
                         Showing{" "}
                         <span className="font-bold text-gray-800">
-                            {filtered.length === 0
-                                ? 0
-                                : (currentPage - 1) * ITEMS_PER_PAGE + 1}{" "}
-                            to {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}
+                            {filtered.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}
                         </span>{" "}
                         of <span className="font-bold text-gray-800">{filtered.length}</span> results
                     </div>
@@ -316,7 +317,6 @@ const SubscriptionPlansPage: React.FC = () => {
                             >
                                 Previous
                             </button>
-
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
@@ -330,7 +330,6 @@ const SubscriptionPlansPage: React.FC = () => {
                                     {page}
                                 </button>
                             ))}
-
                             <button
                                 onClick={() => goToPage(currentPage + 1)}
                                 disabled={currentPage === totalPages}
@@ -364,7 +363,8 @@ const SubscriptionPlansPage: React.FC = () => {
                         invoice_limit: modal.plan.invoice_limit,
                         trial_days: modal.plan.trial_days,
                         is_active: modal.plan.is_active,
-                        features: modal.plan.features.map((f) => ({
+                        // guard against undefined features from API
+                        features: (modal.plan.features ?? []).map((f) => ({
                             feature_name: f.feature_name,
                             feature_value: f.feature_value,
                         })),

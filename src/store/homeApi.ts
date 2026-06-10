@@ -1,12 +1,13 @@
 import { baseApi } from "./baseApi";
+import type { Coupon } from "./couponApi";
 
 export interface Feature {
-    id?: number;
-    plan_id?: number;
+    id: number;
+    plan_id: number;
     feature_name: string;
     feature_value: string | null;
-    created_at?: string;
-    updated_at?: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface SubscriptionPlan {
@@ -23,11 +24,45 @@ export interface SubscriptionPlan {
     features: Feature[];
 }
 
+export type SubscriptionStatus =
+    | "trial"
+    | "active"
+    | "cancelled"
+    | "expired"
+    | "pending";
+
+export interface Subscription {
+    id: number;
+    company_id: number;
+    plan_id: number;
+    coupon_code: string | undefined;
+    start_date: string;
+    end_date: string | null;
+    trial_ends_at: string | null;
+    renews_at: string | null;
+    cancelled_at: string | null;
+    status: SubscriptionStatus;
+    created_at: string;
+    updated_at: string;
+    plan: SubscriptionPlan;
+    coupon: Coupon | null;
+}
+
+export interface SubscriptionPayload {
+    company_id: number;
+    plan_id: number;
+    coupon_code: string | undefined;
+    start_date: string;
+    end_date: string | null;
+    status: SubscriptionStatus;
+}
+
+
 
 
 export const homeApi = baseApi
     .enhanceEndpoints({
-        addTagTypes: ["SubscriptionPlan"],
+        addTagTypes: ["SubscriptionPlan", "Subscription"],
     })
     .injectEndpoints({
         endpoints: (builder) => ({
@@ -55,6 +90,25 @@ export const homeApi = baseApi
                         ]
                         : [{ type: "SubscriptionPlan", id: "LIST" }],
             }),
+            // ================================
+            // CREATE SUBSCRIPTION
+            // ================================
+            createSubscription: builder.mutation<
+                Subscription,
+                SubscriptionPayload
+            >({
+                query: (body) => ({
+                    url: "/subscriptions",
+                    method: "POST",
+                    body,
+                }),
+
+                transformResponse: (response: any) =>
+                    response.data || response,
+
+                invalidatesTags: [{ type: "Subscription", id: "LIST" }],
+            }),
+
 
             // // ================================
             // // GET SUBSCRIPTION PLAN BY ID
@@ -80,4 +134,5 @@ export const homeApi = baseApi
 
 export const {
     useGetSubscriptionPlanQuery,
+    useCreateSubscriptionMutation,
 } = homeApi;

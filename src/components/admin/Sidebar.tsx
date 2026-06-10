@@ -17,10 +17,13 @@ import {
 import { cn } from "../../lib/utils";
 import { logout } from "../../store/authSlice";
 
+
 const Sidebar: React.FC = () => {
   const { roles } = useSelector((state: RootState) => state.auth);
   const isSuperAdmin = roles.includes("super-admin");
   const isAdmin = roles.includes("admin");
+  const companyId = useSelector((state: RootState) => state.auth.company_id);
+  // console.log("Company ID from URL:", companyId);
 
   const location = useLocation();
   const dispatch = useDispatch();
@@ -77,13 +80,20 @@ const Sidebar: React.FC = () => {
             onToggle={() => setIsCompanyOpen((prev) => !prev)}
             location={location.pathname}
             items={[
-              // Both roles
               { name: "Company", href: "/dashboard/company/list" },
-              // Admin only
-              ...(isAdmin ? [
-                { name: "Company Address", href: "/dashboard/company/address" },
-                { name: "Company Users", href: "/dashboard/company/users" },
-              ] : []),
+
+              ...(isAdmin
+                ? [
+                  {
+                    name: "Company Address",
+                    href: `/dashboard/company/${companyId}/address`,
+                  },
+                  {
+                    name: "Company Users",
+                    href: `/dashboard/company/${companyId}/users`,
+                  },
+                ]
+                : []),
             ]}
           />
         )}
