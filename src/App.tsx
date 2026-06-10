@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import CompanyUsersPage from "./pages/admin/company/CompanyUsersPage";
 import CompaniesPage from "./pages/admin/company/CompaniesPage";
+import CompanyAddressesPage from "./pages/admin/company/CompanyAddressesPage";
 
 const Placeholder = ({ title }: { title: string }) => (
   <div className="p-6 text-2xl font-semibold">{title}</div>
@@ -93,7 +94,7 @@ const router = createBrowserRouter([
             children: [
               {
                 path: ":companyId/address",
-                element: <Placeholder title="Company Address" />,
+                element: <CompanyAddressesPage />,
               },
               {
                 path: ":companyId/users",

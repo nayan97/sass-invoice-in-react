@@ -59,7 +59,7 @@ const Header: React.FC = () => {
           >
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-slate-900">{user?.name ?? "Admin User"}</p>
-              <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Super Admin</p>
+              {/* <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Super Admin</p> */}
             </div>
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center border border-white/20 shadow-md">
               <User className="text-white w-6 h-6" />
