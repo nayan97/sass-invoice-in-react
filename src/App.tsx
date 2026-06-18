@@ -17,18 +17,28 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CompanyUsersPage from "./pages/admin/company/CompanyUsersPage";
 import CompaniesPage from "./pages/admin/company/CompaniesPage";
 import CompanyAddressesPage from "./pages/admin/company/CompanyAddressesPage";
+import CurrenciesPage from "./pages/admin/Currencies/CurrenciesPage";
+
+// ── Invoice pages ──
+import CompanyInvoicesPage from "./pages/admin/Invoices/CompanyInvoicesPage";
+import AddInvoicePageWrapper from "./pages/admin/Invoices/AddInvoicePageWrapper";
+import InvoiceDetailPageWrapper from "./pages/admin/Invoices/InvoiceDetailPageWrapper";
+
+// // ── Product pages ──
+// import ProductsPageWrapper from "./pages/admin/Products/ProductsPageWrapper";
+// import AddProductPageWrapper from "./pages/admin/Products/AddProductPageWrapper";
 
 const Placeholder = ({ title }: { title: string }) => (
   <div className="p-6 text-2xl font-semibold">{title}</div>
 );
 
 const router = createBrowserRouter([
-  { path: "/login", element: <Login /> },
-  { path: "/register", element: <Register /> },
-  { path: "/", element: <PricingPage /> },
+  { path: "/login",        element: <Login /> },
+  { path: "/register",     element: <Register /> },
+  { path: "/",             element: <PricingPage /> },
   { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
-  // ✅ super-admin + admin shared routes
+  // ── super-admin + admin shared ──────────────────────────────────────────────
   {
     element: <ProtectedRoute allowedRoles={["super-admin", "admin"]} />,
     children: [
@@ -38,24 +48,17 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <Dashboard /> },
 
-          // Company — shared (super-admin + admin)
-          {
-            path: "company",
-            children: [
-              { path: "list", element: <CompaniesPage /> },
-            ],
-          },
+          { path: "company/list", element: <CompaniesPage /> },
 
-          { path: "products", element: <Placeholder title="Products" /> },
-          { path: "orders", element: <Placeholder title="Orders" /> },
-          { path: "users", element: <Placeholder title="Users" /> },
+          { path: "orders",   element: <Placeholder title="Orders" /> },
+          { path: "users",    element: <Placeholder title="Users" /> },
           { path: "settings", element: <Placeholder title="Settings" /> },
         ],
       },
     ],
   },
 
-  // ✅ super-admin ONLY routes
+  // ── super-admin ONLY ────────────────────────────────────────────────────────
   {
     element: <ProtectedRoute allowedRoles={["super-admin"]} />,
     children: [
@@ -63,16 +66,21 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: <AdminLayout />,
         children: [
-          // Subscriptions — super-admin only
           {
             path: "subscriptions",
             children: [
-              { path: "plan", element: <SubscriptionPlansPage /> },
-              { path: "coupons", element: <CouponsPage /> },
-              { path: "list", element: <SubscriptionsPage /> },
+              { path: "plan",         element: <SubscriptionPlansPage /> },
+              { path: "coupons",      element: <CouponsPage /> },
+              { path: "list",         element: <SubscriptionsPage /> },
               { path: "transactions", element: <TransactionsPage /> },
-              { path: "invoices", element: <InvoicesPage /> },
-              { path: "usage", element: <Placeholder title="Usage Analytics" /> },
+              { path: "invoices",     element: <InvoicesPage /> },
+              { path: "usage",        element: <Placeholder title="Usage Analytics" /> },
+            ],
+          },
+          {
+            path: "currencies",
+            children: [
+              { path: "add", element: <CurrenciesPage /> },
             ],
           },
         ],
@@ -80,7 +88,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ✅ admin ONLY routes
+  // ── admin ONLY ──────────────────────────────────────────────────────────────
   {
     element: <ProtectedRoute allowedRoles={["admin"]} />,
     children: [
@@ -88,26 +96,34 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: <AdminLayout />,
         children: [
-          // Company address & users — admin only
           {
             path: "company",
             children: [
-              {
-                path: ":companyId/address",
-                element: <CompanyAddressesPage />,
-              },
-              {
-                path: ":companyId/users",
-                element: <CompanyUsersPage />,
-              },
+              { path: ":companyId/address", element: <CompanyAddressesPage /> },
+              { path: ":companyId/users",   element: <CompanyUsersPage /> },
+
+              // ── Invoice routes ──
+              { path: ":companyId/invoices",        element: <CompanyInvoicesPage /> },
+              { path: ":companyId/invoices/create",  element: <AddInvoicePageWrapper /> },
+              { path: ":companyId/invoices/:invoiceId", element: <InvoiceDetailPageWrapper /> },
             ],
           },
+
+          // // ── Product routes ──
+          // {
+          //   path: "company/:companyId/branches/:branchId/products",
+          //   children: [
+          //     { index: true,         element: <ProductsPageWrapper /> },
+          //     { path: "create",      element: <AddProductPageWrapper /> },
+          //     { path: ":productId/edit", element: <AddProductPageWrapper /> },
+          //   ],
+          // },
         ],
       },
     ],
   },
 
-  // ✅ User-only routes
+  // ── user only ───────────────────────────────────────────────────────────────
   {
     element: <ProtectedRoute allowedRoles={["user"]} />,
     children: [
@@ -115,7 +131,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ✅ Any authenticated user
+  // ── any authenticated ───────────────────────────────────────────────────────
   {
     element: <ProtectedRoute />,
     children: [

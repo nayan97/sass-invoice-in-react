@@ -5,32 +5,29 @@ import type { RootState } from "../../store";
 import {
   LayoutDashboard,
   Package,
-  Users,
-  Settings,
-  ShoppingCart,
   LogOut,
   Receipt,
   ChevronDown,
   Building2,
   CreditCard,
+  FileText,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { logout } from "../../store/authSlice";
-
 
 const Sidebar: React.FC = () => {
   const { roles } = useSelector((state: RootState) => state.auth);
   const isSuperAdmin = roles.includes("super-admin");
   const isAdmin = roles.includes("admin");
   const companyId = useSelector((state: RootState) => state.auth.company_id);
-  // console.log("Company ID from URL:", companyId);
 
   const location = useLocation();
   const dispatch = useDispatch();
 
-  // ✅ Separate state for each dropdown
+  // ✅ Each dropdown has its own independent state
   const [isSubscriptionsOpen, setIsSubscriptionsOpen] = useState(false);
-  const [isCompanyOpen, setIsCompanyOpen] = useState(false);
+  const [isCompanyOpen, setIsCompanyOpen]             = useState(false);
+  const [isInvoicesOpen, setIsInvoicesOpen]           = useState(false);
 
   return (
     <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen fixed left-0 top-0 z-50 shadow-sm">
@@ -50,7 +47,13 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Dashboard */}
-        <NavLink href="/dashboard" icon={LayoutDashboard} label="Dashboard" location={location.pathname} exact />
+        <NavLink
+          href="/dashboard"
+          icon={LayoutDashboard}
+          label="Dashboard"
+          location={location.pathname}
+          exact
+        />
 
         {/* Subscriptions — super-admin only */}
         {isSuperAdmin && (
@@ -62,11 +65,11 @@ const Sidebar: React.FC = () => {
             location={location.pathname}
             items={[
               { name: "Subscription Plan", href: "/dashboard/subscriptions/plan" },
-              { name: "Coupons", href: "/dashboard/subscriptions/coupons" },
-              { name: "Subscriptions", href: "/dashboard/subscriptions/list" },
-              { name: "Transactions", href: "/dashboard/subscriptions/transactions" },
-              { name: "Invoices", href: "/dashboard/subscriptions/invoices" },
-              { name: "Usage", href: "/dashboard/subscriptions/usage" },
+              { name: "Coupons",           href: "/dashboard/subscriptions/coupons" },
+              { name: "Subscriptions",     href: "/dashboard/subscriptions/list" },
+              { name: "Transactions",      href: "/dashboard/subscriptions/transactions" },
+              { name: "Invoices",          href: "/dashboard/subscriptions/invoices" },
+              { name: "Usage",             href: "/dashboard/subscriptions/usage" },
             ]}
           />
         )}
@@ -81,34 +84,38 @@ const Sidebar: React.FC = () => {
             location={location.pathname}
             items={[
               { name: "Company", href: "/dashboard/company/list" },
-
               ...(isAdmin
                 ? [
-                  {
-                    name: "Company Address",
-                    href: `/dashboard/company/${companyId}/address`,
-                  },
-                  {
-                    name: "Company Users",
-                    href: `/dashboard/company/${companyId}/users`,
-                  },
-                ]
+                    { name: "Company Address", href: `/dashboard/company/${companyId}/address` },
+                    { name: "Company Users",   href: `/dashboard/company/${companyId}/users` },
+                  ]
                 : []),
             ]}
           />
         )}
 
+        {/* Invoices — admin only, own dropdown state */}
+        {isAdmin && (
+          <DropdownMenu
+            label="Invoices"
+            icon={FileText}
+            isOpen={isInvoicesOpen}
+            onToggle={() => setIsInvoicesOpen((prev) => !prev)}
+            location={location.pathname}
+            items={[
+              { name: "All Invoices",   href: `/dashboard/company/${companyId}/invoices` },
+              { name: "New Invoice",    href: `/dashboard/company/${companyId}/invoices/create` },
+            ]}
+          />
+        )}
+
         {/* Products */}
-        <NavLink href="/dashboard/products" icon={Package} label="Products" location={location.pathname} />
-
-        {/* Orders */}
-        <NavLink href="/dashboard/orders" icon={ShoppingCart} label="Orders" location={location.pathname} />
-
-        {/* Users */}
-        <NavLink href="/dashboard/users" icon={Users} label="Users" location={location.pathname} />
-
-        {/* Settings */}
-        <NavLink href="/dashboard/settings" icon={Settings} label="Settings" location={location.pathname} />
+        <NavLink
+          href="/dashboard/products"
+          icon={Package}
+          label="Products"
+          location={location.pathname}
+        />
       </nav>
 
       {/* Logout */}
@@ -128,7 +135,7 @@ const Sidebar: React.FC = () => {
   );
 };
 
-// ─── Reusable NavLink ───────────────────────────────────────────────────────
+// ─── Reusable NavLink ────────────────────────────────────────────────────────
 
 interface NavLinkProps {
   href: string;
@@ -159,7 +166,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, location, ex
   );
 };
 
-// ─── Reusable DropdownMenu ──────────────────────────────────────────────────
+// ─── Reusable DropdownMenu ───────────────────────────────────────────────────
 
 interface DropdownItem {
   name: string;
