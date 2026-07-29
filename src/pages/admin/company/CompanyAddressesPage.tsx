@@ -31,7 +31,11 @@ const CompanyAddressesPage: React.FC = () => {
     const { companyId } = useParams<{ companyId: string }>();
     const id = Number(companyId);
 
-    const { data: addresses = [], isLoading, isError } = useGetCompanyAddressesQuery(id);
+    // useGetCompanyAddressesQuery now resolves to { company, addresses } —
+    // not a bare Address[] — since the endpoint's transformResponse was
+    // updated to also carry company info (name/email/phone/tax_number).
+    const { data: companyRes, isLoading, isError } = useGetCompanyAddressesQuery(id);
+    const addresses = companyRes?.addresses ?? [];
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType]   = useState("all");

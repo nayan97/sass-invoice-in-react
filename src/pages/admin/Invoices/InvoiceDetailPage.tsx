@@ -94,7 +94,7 @@ const InvoiceDetailPage: React.FC<Props> = ({ companyId, invoiceId, onBack, onEd
     // ─── Render ───────────────────────────────────────────────────────────────
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] p-6 font-sans text-[#333333]">
+        <div className="min-h-screen bg-[#F8F9FA] p-6 font-sans text-[#333333] max-w-5xl mx-auto">
 
             {/* Page Header */}
             <div className="flex justify-between items-center mb-6">

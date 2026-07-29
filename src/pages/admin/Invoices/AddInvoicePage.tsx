@@ -1,9 +1,27 @@
-import React, { useState, useCallback } from "react";
-import { Plus, Trash2, Loader2, Save, Download, Send, ArrowLeft } from "lucide-react";
-import { useCreateInvoiceMutation } from "../../../store/mainInvoiceApi";
+import React, { useState, useCallback, useEffect } from "react";
+import { Plus, Trash2, Loader2, Save, Send, ArrowLeft } from "lucide-react";
+import { useCreateInvoiceMutation, useSendInvoiceMutation } from "../../../store/mainInvoiceApi";
 import type { InvoiceStatus } from "../../../store/mainInvoiceApi";
+import type { Customer } from "../../../store/customerApi";
+import { useGetCompanyAddressesQuery } from "../../../store/companyAddressApi"; // adjust path/hook name to match your actual slice
+import CustomerSelect from "./CustomerSelect";
+import PaymentMethodList, { PAYMENT_GATEWAYS, emptyPaymentMethod, type PaymentMethodEntry } from "./PaymentMethodList";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+// Expected shape from GET /company/{company}/addresses after the controller change:
+// { status: true, company: { id, name, email, phone, tax_number }, data: CompanyAddress[] }
+interface CompanyAddress {
+    id: number;
+    company_id: number | string;
+    type: string; // "billing" | "shipping" | ...
+    address_line: string;
+    city: string;
+    state: string;
+    zip_code: string;
+    country: string;
+    is_default: boolean;
+}
 
 interface LineItem {
     id: string;
@@ -21,13 +39,16 @@ interface FormState {
     due_date: string;
     status: InvoiceStatus;
     terms: string;
-    // Company (From)
+    // Company (From) — read-only, hydrated from the company record
     company_name: string;
     company_email: string;
     company_phone: string;
     company_address: string;
     company_business_number: string;
-    // Customer (Bill To)
+    // Customer (Bill To) — customer_id is the relation, the rest are an
+    // editable snapshot pre-filled on selection (invoice keeps its own copy
+    // even if the customer record changes later)
+    customer_id: number | null;
     customer_name: string;
     customer_email: string;
     customer_phone: string;
@@ -63,8 +84,30 @@ const defaultItem = (): LineItem => ({
     discount_percent: 0,
 });
 
+// Picks the address to represent the company on the invoice:
+// billing + default > billing > default > first available.
+const pickCompanyAddress = (addresses: CompanyAddress[] | undefined): CompanyAddress | null => {
+    if (!addresses?.length) return null;
+    return (
+        addresses.find(a => a.type === "billing" && a.is_default) ??
+        addresses.find(a => a.type === "billing") ??
+        addresses.find(a => a.is_default) ??
+        addresses[0]
+    );
+};
+
+const formatAddress = (a: CompanyAddress | null): string => {
+    if (!a) return "";
+    return [a.address_line, a.city, a.state, a.zip_code, a.country]
+        .filter(Boolean)
+        .join(", ");
+};
+
 const inputCls =
     "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2D8A75]/30 focus:border-[#2D8A75] transition-colors bg-white";
+
+const readOnlyCls =
+    "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-600 bg-gray-50 cursor-not-allowed";
 
 const labelCls = "block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1";
 
@@ -80,10 +123,20 @@ interface Props {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSuccess }) => {
-    const [createInvoice, { isLoading }] = useCreateInvoiceMutation();
+    const [createInvoice, { isLoading: isCreating }] = useCreateInvoiceMutation();
+    const [sendInvoice, { isLoading: isSending }] = useSendInvoiceMutation();
+    const { data: companyRes, isLoading: isCompanyLoading } = useGetCompanyAddressesQuery(companyId);
+    const company = companyRes?.company;
+    // console.log("companyInfo", company);
+    const companyAddress = pickCompanyAddress(companyRes?.addresses);
+    // console.log("companyAddress", companyAddress);
+    const isLoading = isCreating || isSending;
 
     const [items, setItems] = useState<LineItem[]>([defaultItem()]);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const [customer, setCustomer] = useState<Customer | null>(null);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethodEntry[]>([emptyPaymentMethod()]);
 
     const [form, setForm] = useState<FormState>({
         invoice_date: new Date().toISOString().split("T")[0],
@@ -95,6 +148,7 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
         company_phone: "",
         company_address: "",
         company_business_number: "",
+        customer_id: null,
         customer_name: "",
         customer_email: "",
         customer_phone: "",
@@ -111,9 +165,37 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
         receiver_name: "",
     });
 
+    // ── Autofill company (From) block once the company record loads.
+    // Kept read-only in the UI — this is a snapshot for the invoice, sourced
+    // from the company record, not something the user should be typing.
+    useEffect(() => {
+        if (!company) return;
+        setForm(f => ({
+            ...f,
+            company_name: company.name ?? "",
+            company_email: company.email ?? "",
+            company_phone: company.phone ?? "",
+            company_address: formatAddress(companyAddress),
+            company_business_number: company.tax_number ?? "",
+        }));
+    }, [company, companyAddress]);
+
     const set = (key: keyof FormState) => (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => setForm(f => ({ ...f, [key]: e.target.value }));
+
+    // ── Customer ──
+    const handleCustomerSelect = useCallback((c: Customer) => {
+        setCustomer(c);
+        setForm(f => ({
+            ...f,
+            customer_id: c.id,
+            customer_name: c.name,
+            customer_email: c.email ?? f.customer_email,
+            customer_phone: c.phone ?? f.customer_phone,
+        }));
+        setErrors(e => ({ ...e, customer: "" }));
+    }, []);
 
     // ── Items ──
     const updateItem = useCallback((id: string, key: keyof LineItem, value: string | number) => {
@@ -157,11 +239,24 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
     // ── Validation ──
     const validate = () => {
         const e: Record<string, string> = {};
-        if (!form.company_name.trim()) e.company_name = "Company name is required.";
-        if (!form.customer_name.trim()) e.customer_name = "Customer name is required.";
+        // company_name is autofilled from the company record; if it's still
+        // empty here the company record itself is incomplete, not a user error.
+        if (!form.company_name.trim()) e.company_name = "Company has no name on file. Update company settings first.";
+        if (!form.customer_id) e.customer = "Please select a customer.";
         if (!form.invoice_date) e.invoice_date = "Invoice date is required.";
         if (items.some(i => !i.description.trim())) e.items = "All items must have a description.";
         if (items.some(i => i.unit_price <= 0)) e.items_price = "All items must have a price.";
+
+        paymentMethods.forEach(m => {
+            if (!m.name) return;
+            const gateway = PAYMENT_GATEWAYS.find(g => g.key === m.name);
+            gateway?.fields.forEach(f => {
+                if (f.required && !m.values[f.name]?.trim()) {
+                    e[`${m.id}_${f.name}`] = `${f.label} is required.`;
+                }
+            });
+        });
+
         setErrors(e);
         return Object.keys(e).length === 0;
     };
@@ -201,6 +296,19 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
 
         Object.entries(fields).forEach(([k, v]) => { if (v) fd.append(k, v); });
 
+        if (form.customer_id) fd.append("customer_id", String(form.customer_id));
+
+        // FormData can't carry nested JSON as a single field — Laravel only sees
+        // a raw string there. Use bracket notation instead, same as `items[]`.
+        paymentMethods
+            .filter(m => m.name)
+            .forEach((m, i) => {
+                fd.append(`payment_method[${i}][name]`, m.name);
+                Object.entries(m.values).forEach(([key, value]) => {
+                    if (value) fd.append(`payment_method[${i}][${key}]`, value);
+                });
+            });
+
         items.forEach((item, i) => {
             fd.append(`items[${i}][description]`, item.description);
             fd.append(`items[${i}][additional_details]`, item.additional_details);
@@ -212,7 +320,10 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
         });
 
         try {
-            await createInvoice({ companyId, formData: fd }).unwrap();
+            const invoice = await createInvoice({ companyId, formData: fd }).unwrap();
+            if (finalStatus === "sent") {
+                await sendInvoice({ companyId, invoiceId: invoice.id }).unwrap();
+            }
             onSuccess();
         } catch {
             // global error handler
@@ -306,32 +417,46 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
                             </div>
                         </div>
 
-                        {/* Right — Company info */}
+                        {/* Right — Company info (read-only, autofilled from companyId) */}
                         <div className="space-y-4">
                             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">From (Company)</p>
-                            <div>
-                                <label className={labelCls}>Company Name <span className="text-red-400">*</span></label>
-                                <input type="text" value={form.company_name} onChange={set("company_name")} placeholder="Your Company Name" className={inputCls} />
-                                {errors.company_name && <p className="text-xs text-red-500 mt-1">{errors.company_name}</p>}
-                            </div>
-                            <div>
-                                <label className={labelCls}>Address</label>
-                                <textarea rows={2} value={form.company_address} onChange={set("company_address")} placeholder="Company Address" className={inputCls + " resize-none"} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className={labelCls}>Email</label>
-                                    <input type="email" value={form.company_email} onChange={set("company_email")} placeholder="email@company.com" className={inputCls} />
+
+                            {isCompanyLoading ? (
+                                <div className="flex items-center gap-2 text-sm text-gray-400 py-6">
+                                    <Loader2 size={14} className="animate-spin" /> Loading company details…
                                 </div>
-                                <div>
-                                    <label className={labelCls}>Phone</label>
-                                    <input type="text" value={form.company_phone} onChange={set("company_phone")} placeholder="+1 234 567 890" className={inputCls} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className={labelCls}>Business / Tax Number</label>
-                                <input type="text" value={form.company_business_number} onChange={set("company_business_number")} placeholder="123-45-6789" className={inputCls} />
-                            </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className={labelCls}>Company Name</label>
+                                        <div className={readOnlyCls}>{form.company_name || "—"}</div>
+                                        {errors.company_name && <p className="text-xs text-red-500 mt-1">{errors.company_name}</p>}
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Address</label>
+                                        <div className={readOnlyCls + " min-h-[68px] whitespace-pre-wrap"}>
+                                            {form.company_address || "—"}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className={labelCls}>Email</label>
+                                            <div className={readOnlyCls}>{form.company_email || "—"}</div>
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>Phone</label>
+                                            <div className={readOnlyCls}>{form.company_phone || "—"}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Business / Tax Number</label>
+                                        <div className={readOnlyCls}>{form.company_business_number || "—"}</div>
+                                    </div>
+                                    <p className="text-[11px] text-gray-400">
+                                        Pulled from your company profile. To change it, update company settings.
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -345,11 +470,12 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
 
                             {/* Billing */}
                             <div className="space-y-3">
-                                <div>
-                                    <label className={labelCls}>Customer Name <span className="text-red-400">*</span></label>
-                                    <input type="text" value={form.customer_name} onChange={set("customer_name")} placeholder="Client Full Name" className={inputCls} />
-                                    {errors.customer_name && <p className="text-xs text-red-500 mt-1">{errors.customer_name}</p>}
-                                </div>
+                                <CustomerSelect
+                                    companyId={companyId}
+                                    value={customer}
+                                    onChange={handleCustomerSelect}
+                                    error={errors.customer}
+                                />
                                 <div>
                                     <label className={labelCls}>Address</label>
                                     <textarea rows={2} value={form.customer_address} onChange={set("customer_address")} placeholder="Billing Address" className={inputCls + " resize-none"} />
@@ -580,7 +706,16 @@ const AddInvoicePage: React.FC<Props> = ({ companyId, invoiceNo, onBack, onSucce
                     {/* ── Divider ── */}
                     <div className="border-t border-gray-100" />
 
-                    {/* ── Section 4: Notes & Signatures ── */}
+                    {/* ── Section 4: Payment Method ── */}
+                    <div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Payment Method</p>
+                        <PaymentMethodList methods={paymentMethods} onChange={setPaymentMethods} errors={errors} />
+                    </div>
+
+                    {/* ── Divider ── */}
+                    <div className="border-t border-gray-100" />
+
+                    {/* ── Section 5: Notes & Signatures ── */}
                     <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <div>

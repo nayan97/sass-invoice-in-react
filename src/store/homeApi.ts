@@ -74,7 +74,7 @@ export const homeApi = baseApi
                 SubscriptionPlan[],
                 void
             >({
-                query: () => "/home/plans",
+                query: () => "/public/plans",
 
                 transformResponse: (response: any) =>
                     response.data || response,

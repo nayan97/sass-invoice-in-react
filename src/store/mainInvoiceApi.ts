@@ -72,6 +72,7 @@ export interface Invoice {
     authority_name: string | null;
     receiver_name: string | null;
     qr_code: string | null;
+    email_sent_at: string | null;
     created_at: string;
     updated_at: string;
     // relations (loaded on show)
@@ -79,6 +80,30 @@ export interface Invoice {
     photos?: InvoicePhoto[];
     currency?: { id: number; name: string; code: string; symbol: string } | null;
     customer?: { id: number; name: string; email: string } | null;
+}
+
+export interface InvoicePayment {
+    id: number;
+    invoice_id: number;
+    gateway: string;
+    reference: string | null;
+    amount: string;
+    note: string | null;
+    paid_at: string;
+    recorded_by: { id: number; name: string } | null;
+}
+
+export interface InvoicePaymentsResponse {
+    data: InvoicePayment[];
+    meta: { total_amount: string; total_paid: string; balance_due: string };
+}
+
+export interface RecordPaymentPayload {
+    gateway: string;
+    reference?: string;
+    amount: number;
+    paid_at?: string;
+    note?: string;
 }
 
 // ─── Pagination Meta ──────────────────────────────────────────────────────────
@@ -165,9 +190,9 @@ export const mainInvoiceApi = baseApi
                         per_page: String(per_page),
                     });
                     if (status && status !== "all") params.set("status", status);
-                    if (search)    params.set("search", search);
-                    if (sort_by)   params.set("sort_by", sort_by);
-                    if (sort_dir)  params.set("sort_dir", sort_dir);
+                    if (search) params.set("search", search);
+                    if (sort_by) params.set("sort_by", sort_by);
+                    if (sort_dir) params.set("sort_dir", sort_dir);
 
                     return `/companies/${companyId}/invoices?${params}`;
                 },
@@ -182,7 +207,7 @@ export const mainInvoiceApi = baseApi
                         ? [
                             ...result.data.map(({ id }) => ({ type: "Invoice" as const, id })),
                             { type: "Invoice", id: `LIST-${companyId}` },
-                          ]
+                        ]
                         : [{ type: "Invoice", id: `LIST-${companyId}` }],
             }),
 
@@ -270,6 +295,57 @@ export const mainInvoiceApi = baseApi
                     { type: "Invoice", id: `LIST-${companyId}` },
                 ],
             }),
+
+            // ── Send (email) ─────────────────────────────────────────────────
+
+            sendInvoice: builder.mutation<{ message: string }, { companyId: number; invoiceId: number }>({
+                query: ({ companyId, invoiceId }) => ({
+                    url: `/companies/${companyId}/invoices/${invoiceId}/send`,
+                    method: "POST",
+                }),
+                invalidatesTags: (_result, _err, { invoiceId }) => [{ type: "Invoice", id: invoiceId }],
+            }),
+
+            // ── Resend (email) ───────────────────────────────────────────────
+
+            resendInvoice: builder.mutation<
+                { message: string; data: { email_sent_at: string } },
+                { companyId: number; invoiceId: number }
+            >({
+                query: ({ companyId, invoiceId }) => ({
+                    url: `/companies/${companyId}/invoices/${invoiceId}/resend`,
+                    method: "POST",
+                }),
+                invalidatesTags: (_result, _err, { invoiceId }) => [{ type: "Invoice", id: invoiceId }],
+            }),
+
+            getInvoicePayments: builder.query<InvoicePaymentsResponse, { companyId: number; invoiceId: number }>({
+                query: ({ companyId, invoiceId }) => `/companies/${companyId}/invoices/${invoiceId}/payments`,
+                providesTags: (_r, _e, { invoiceId }) => [{ type: "Invoice", id: `PAYMENTS-${invoiceId}` }],
+            }),
+
+            recordInvoicePayment: builder.mutation<{ data: InvoicePayment }, { companyId: number; invoiceId: number; payload: RecordPaymentPayload }>({
+                query: ({ companyId, invoiceId, payload }) => ({
+                    url: `/companies/${companyId}/invoices/${invoiceId}/payments`,
+                    method: "POST",
+                    body: payload,
+                }),
+                invalidatesTags: (_r, _e, { invoiceId }) => [
+                    { type: "Invoice", id: invoiceId },
+                    { type: "Invoice", id: `PAYMENTS-${invoiceId}` },
+                ],
+            }),
+
+            deleteInvoicePayment: builder.mutation<{ message: string }, { companyId: number; invoiceId: number; paymentId: number }>({
+                query: ({ companyId, invoiceId, paymentId }) => ({
+                    url: `/companies/${companyId}/invoices/${invoiceId}/payments/${paymentId}`,
+                    method: "DELETE",
+                }),
+                invalidatesTags: (_r, _e, { invoiceId }) => [
+                    { type: "Invoice", id: invoiceId },
+                    { type: "Invoice", id: `PAYMENTS-${invoiceId}` },
+                ],
+            }),
         }),
     });
 
@@ -280,4 +356,9 @@ export const {
     useUpdateInvoiceMutation,
     useUpdateInvoiceStatusMutation,
     useDeleteInvoiceMutation,
+    useSendInvoiceMutation,
+    useResendInvoiceMutation,
+    useGetInvoicePaymentsQuery,
+    useRecordInvoicePaymentMutation,
+    useDeleteInvoicePaymentMutation,
 } = mainInvoiceApi;

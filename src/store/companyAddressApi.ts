@@ -15,6 +15,19 @@ export interface Address {
     deleted_at: string | null;
 }
 
+export interface CompanyInfo {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    tax_number: string;
+}
+
+export interface CompanyAddressesResponse {
+    company: CompanyInfo;
+    addresses: Address[];
+}
+
 export interface AddressPayload {
     type: string;
     address_line: string;
@@ -32,23 +45,25 @@ export const companyAddressApi = baseApi
     .injectEndpoints({
         endpoints: (builder) => ({
 
-            // ================================
-            // GET ALL ADDRESSES FOR A COMPANY
-            // ================================
-            getCompanyAddresses: builder.query<Address[], number>({
-                query: (companyId) => `/companies/${companyId}/addresses`,
+        // ================================
+        // GET ALL ADDRESSES FOR A COMPANY (+ company info)
+        // ================================
+        getCompanyAddresses: builder.query<CompanyAddressesResponse, number>({
+            query: (companyId) => `/companies/${companyId}/addresses`,
 
-                transformResponse: (response: any) =>
-                    response.data || response,
-
-                providesTags: (result, _error, companyId) =>
-                    result
-                        ? [
-                            ...result.map(({ id }) => ({ type: "CompanyAddress" as const, id })),
-                            { type: "CompanyAddress", id: `LIST-${companyId}` },
-                        ]
-                        : [{ type: "CompanyAddress", id: `LIST-${companyId}` }],
+            transformResponse: (response: any) => ({
+                company: response.company,
+                addresses: response.data ?? [],
             }),
+
+            providesTags: (result, _error, companyId) =>
+                result
+                    ? [
+                        ...result.addresses.map(({ id }) => ({ type: "CompanyAddress" as const, id })),
+                        { type: "CompanyAddress", id: `LIST-${companyId}` },
+                    ]
+                    : [{ type: "CompanyAddress", id: `LIST-${companyId}` }],
+        }),
 
             // ================================
             // CREATE ADDRESS

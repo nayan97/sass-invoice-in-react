@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import {
-    Search, Plus, Pencil, Trash2, Loader2,
-    Eye, FileText, TrendingUp, Clock, CheckCircle, XCircle,
+    Search, Plus, Loader2,
+    FileText, TrendingUp, Clock, CheckCircle, XCircle,
 } from "lucide-react";
 import { useGetInvoicesQuery, useUpdateInvoiceStatusMutation, type Invoice, type InvoiceStatus } from "../../../store/mainInvoiceApi";
 import { InvoiceDeleteModal } from "./InvoiceDeleteModal";
+import { InvoiceActionsMenu } from "./InvoiceActionsMenu";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -303,7 +304,6 @@ const InvoiceListPage: React.FC<InvoicesPageProps> = ({
                             {!isLoading && invoices.map((invoice, index) => {
                                 const currencySymbol = invoice.currency?.symbol ?? "$";
                                 const isOverdue = invoice.status === "overdue";
-                                const isDraft   = invoice.status === "draft";
 
                                 return (
                                     <tr
@@ -371,37 +371,16 @@ const InvoiceListPage: React.FC<InvoicesPageProps> = ({
                                             </select>
                                         </td>
 
-                                        {/* Actions */}
+                                        {/* Actions — 3-dot dropdown menu */}
                                         <td className="py-3.5 px-6">
-                                            <div className="flex items-center justify-center gap-1.5">
-                                                {/* View */}
-                                                <button
-                                                    onClick={() => onEditInvoice(invoice)}
-                                                    className="p-1.5 bg-[#F0FDF4] hover:bg-green-100 text-[#16A34A] rounded transition-colors"
-                                                    title="View"
-                                                >
-                                                    <Eye size={13} />
-                                                </button>
-
-                                                {/* Edit — only draft */}
-                                                {isDraft && (
-                                                    <button
-                                                        onClick={() => onEditInvoice(invoice)}
-                                                        className="p-1.5 bg-[#E0ECFB] hover:bg-blue-100 text-[#4A90E2] rounded transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Pencil size={13} />
-                                                    </button>
-                                                )}
-
-                                                {/* Delete */}
-                                                <button
-                                                    onClick={() => setModal({ type: "delete", invoice })}
-                                                    className="p-1.5 bg-[#FFE4E6] hover:bg-red-100 text-[#F43F5E] rounded transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={13} />
-                                                </button>
+                                            <div className="flex items-center justify-center">
+                                                <InvoiceActionsMenu
+                                                    invoice={invoice}
+                                                    companyId={companyId}
+                                                    onView={() => onEditInvoice(invoice)}
+                                                    onEdit={() => onEditInvoice(invoice)}
+                                                    onDelete={() => setModal({ type: "delete", invoice })}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

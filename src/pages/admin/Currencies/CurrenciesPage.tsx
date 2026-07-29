@@ -52,7 +52,7 @@ const CurrenciesPage: React.FC = () => {
     // ── Summary totals (current page) ──
     const totalActive   = currencies.filter((c) => c.is_active).length;
     const totalInactive = currencies.filter((c) => !c.is_active).length;
-    const totalDefault  = currencies.filter((c) => c.is_default).length;
+    // const totalDefault  = currencies.filter((c) => c.is_default).length;
 
     const goToPage = (p: number) => {
         if (!meta) return;

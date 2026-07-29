@@ -28,6 +28,7 @@ const Sidebar: React.FC = () => {
   const [isSubscriptionsOpen, setIsSubscriptionsOpen] = useState(false);
   const [isCompanyOpen, setIsCompanyOpen]             = useState(false);
   const [isInvoicesOpen, setIsInvoicesOpen]           = useState(false);
+  const [isCustomersOpen, setIsCustomersOpen]         = useState(false);
 
   return (
     <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen fixed left-0 top-0 z-50 shadow-sm">
@@ -90,6 +91,20 @@ const Sidebar: React.FC = () => {
                     { name: "Company Users",   href: `/dashboard/company/${companyId}/users` },
                   ]
                 : []),
+            ]}
+          />
+        )}
+           {isAdmin && (
+          <DropdownMenu
+            label="Customers"
+            icon={FileText}
+            isOpen={isCustomersOpen}
+            onToggle={() => setIsCustomersOpen((prev) => !prev)}
+            location={location.pathname}
+            items={[
+              { name: "Customer Groups",   href: `/dashboard/company/${companyId}/customer-groups` },
+              { name: "Customers",   href: `/dashboard/company/${companyId}/customers` },
+          
             ]}
           />
         )}

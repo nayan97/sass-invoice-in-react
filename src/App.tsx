@@ -23,6 +23,9 @@ import CurrenciesPage from "./pages/admin/Currencies/CurrenciesPage";
 import CompanyInvoicesPage from "./pages/admin/Invoices/CompanyInvoicesPage";
 import AddInvoicePageWrapper from "./pages/admin/Invoices/AddInvoicePageWrapper";
 import InvoiceDetailPageWrapper from "./pages/admin/Invoices/InvoiceDetailPageWrapper";
+import PublicInvoicePage from "./pages/user/PublicInvoicePage";
+import CustomersPage from "./pages/admin/customers/CustomersPage";
+import CustomerGroupsPage from "./pages/admin/customers/CustomerGroupsPage";
 
 // // ── Product pages ──
 // import ProductsPageWrapper from "./pages/admin/Products/ProductsPageWrapper";
@@ -36,6 +39,7 @@ const router = createBrowserRouter([
   { path: "/login",        element: <Login /> },
   { path: "/register",     element: <Register /> },
   { path: "/",             element: <PricingPage /> },
+  { path: "/pay/invoice/:token", element: <PublicInvoicePage /> },
   { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
   // ── super-admin + admin shared ──────────────────────────────────────────────
@@ -101,6 +105,15 @@ const router = createBrowserRouter([
             children: [
               { path: ":companyId/address", element: <CompanyAddressesPage /> },
               { path: ":companyId/users",   element: <CompanyUsersPage /> },
+
+              {
+                path: ":companyId/customer-groups",
+                element: <CustomerGroupsPage />,
+              },
+              {
+                path: ":companyId/customers",
+                element: <CustomersPage />,
+              },
 
               // ── Invoice routes ──
               { path: ":companyId/invoices",        element: <CompanyInvoicesPage /> },
