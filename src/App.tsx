@@ -13,6 +13,7 @@ import TransactionsPage from "./pages/admin/subcriptions/TransactionsPage";
 import InvoicesPage from "./pages/admin/subcriptions/InvoicesPage";
 import PricingPage from "./pages/user/PricingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
 
 import CompanyUsersPage from "./pages/admin/company/CompanyUsersPage";
 import CompaniesPage from "./pages/admin/company/CompaniesPage";
@@ -26,6 +27,8 @@ import InvoiceDetailPageWrapper from "./pages/admin/Invoices/InvoiceDetailPageWr
 import PublicInvoicePage from "./pages/user/PublicInvoicePage";
 import CustomersPage from "./pages/admin/customers/CustomersPage";
 import CustomerGroupsPage from "./pages/admin/customers/CustomerGroupsPage";
+import CustomerLogin from "./pages/CustomerLogin";
+import CustomerProfile from "./pages/user/CustomerProfile";
 
 // // ── Product pages ──
 // import ProductsPageWrapper from "./pages/admin/Products/ProductsPageWrapper";
@@ -36,9 +39,10 @@ const Placeholder = ({ title }: { title: string }) => (
 );
 
 const router = createBrowserRouter([
-  { path: "/login",        element: <Login /> },
-  { path: "/register",     element: <Register /> },
-  { path: "/",             element: <PricingPage /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/", element: <PricingPage /> },
+  { path: "/customer/:company/login", element: <CustomerLogin /> },
   { path: "/pay/invoice/:token", element: <PublicInvoicePage /> },
   { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
@@ -54,8 +58,8 @@ const router = createBrowserRouter([
 
           { path: "company/list", element: <CompaniesPage /> },
 
-          { path: "orders",   element: <Placeholder title="Orders" /> },
-          { path: "users",    element: <Placeholder title="Users" /> },
+          { path: "orders", element: <Placeholder title="Orders" /> },
+          { path: "users", element: <Placeholder title="Users" /> },
           { path: "settings", element: <Placeholder title="Settings" /> },
         ],
       },
@@ -73,12 +77,12 @@ const router = createBrowserRouter([
           {
             path: "subscriptions",
             children: [
-              { path: "plan",         element: <SubscriptionPlansPage /> },
-              { path: "coupons",      element: <CouponsPage /> },
-              { path: "list",         element: <SubscriptionsPage /> },
+              { path: "plan", element: <SubscriptionPlansPage /> },
+              { path: "coupons", element: <CouponsPage /> },
+              { path: "list", element: <SubscriptionsPage /> },
               { path: "transactions", element: <TransactionsPage /> },
-              { path: "invoices",     element: <InvoicesPage /> },
-              { path: "usage",        element: <Placeholder title="Usage Analytics" /> },
+              { path: "invoices", element: <InvoicesPage /> },
+              { path: "usage", element: <Placeholder title="Usage Analytics" /> },
             ],
           },
           {
@@ -104,7 +108,7 @@ const router = createBrowserRouter([
             path: "company",
             children: [
               { path: ":companyId/address", element: <CompanyAddressesPage /> },
-              { path: ":companyId/users",   element: <CompanyUsersPage /> },
+              { path: ":companyId/users", element: <CompanyUsersPage /> },
 
               {
                 path: ":companyId/customer-groups",
@@ -116,8 +120,8 @@ const router = createBrowserRouter([
               },
 
               // ── Invoice routes ──
-              { path: ":companyId/invoices",        element: <CompanyInvoicesPage /> },
-              { path: ":companyId/invoices/create",  element: <AddInvoicePageWrapper /> },
+              { path: ":companyId/invoices", element: <CompanyInvoicesPage /> },
+              { path: ":companyId/invoices/create", element: <AddInvoicePageWrapper /> },
               { path: ":companyId/invoices/:invoiceId", element: <InvoiceDetailPageWrapper /> },
             ],
           },
@@ -149,6 +153,13 @@ const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       { path: "/profile", element: <Placeholder title="Profile" /> },
+    ],
+  },
+  {
+    path: "/customer/:company",
+    element: <CustomerProtectedRoute />,
+    children: [
+      { path: "profile", element: <CustomerProfile /> },
     ],
   },
 ]);

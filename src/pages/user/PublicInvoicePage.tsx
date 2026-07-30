@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
+
 import { Loader2, FileX, CheckCircle2, Copy, Check, CreditCard } from "lucide-react";
 import { useGetPublicInvoiceQuery, useCreateStripeCheckoutSessionMutation } from "../../store/publicInvoiceApi";
 
@@ -178,7 +179,7 @@ const PublicInvoicePage: React.FC = () => {
                     {/* ── Totals ── */}
                     <div className="flex justify-end">
                         <div className="w-72 space-y-2">
-                               <div className="flex justify-between text-base font-bold text-gray-800 pt-2 border-t-2" style={{ borderTopColor: `${primaryColor}20` }}>
+                            <div className="flex justify-between text-base font-bold text-gray-800 pt-2 border-t-2" style={{ borderTopColor: `${primaryColor}20` }}>
                                 <span>Sub Total</span>
                                 <span style={{ color: primaryColor }}>${fmt(invoice.subtotal)}</span>
                             </div>
@@ -374,6 +375,15 @@ const PublicInvoicePage: React.FC = () => {
                             </div>
                         </>
                     )}
+
+             {invoice.customer_email && (
+                <Link
+                        to={`/customer/${invoice.company_id}/login?email=${encodeURIComponent(invoice.customer_email)}`}
+                        className="text-sm text-[#2D8A75] font-medium hover:underline"
+                    >
+                        Manage my profile & saved addresses
+                    </Link>
+                )}
 
                 </div>
             </div>
