@@ -27,8 +27,9 @@ import InvoiceDetailPageWrapper from "./pages/admin/Invoices/InvoiceDetailPageWr
 import PublicInvoicePage from "./pages/user/PublicInvoicePage";
 import CustomersPage from "./pages/admin/customers/CustomersPage";
 import CustomerGroupsPage from "./pages/admin/customers/CustomerGroupsPage";
-import CustomerLogin from "./pages/CustomerLogin";
 import CustomerProfile from "./pages/user/CustomerProfile";
+import MyAccountPage from "./pages/MyAccountPage";
+import MySubscriptionInvoicesPage from "./pages/admin/subcriptioninv/Mysubscriptioninvoicespage";
 
 // // ── Product pages ──
 // import ProductsPageWrapper from "./pages/admin/Products/ProductsPageWrapper";
@@ -42,7 +43,6 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/", element: <PricingPage /> },
-  { path: "/customer/:company/login", element: <CustomerLogin /> },
   { path: "/pay/invoice/:token", element: <PublicInvoicePage /> },
   { path: "/unauthorized", element: <Placeholder title="403 — Unauthorized" /> },
 
@@ -142,9 +142,10 @@ const router = createBrowserRouter([
 
   // ── user only ───────────────────────────────────────────────────────────────
   {
-    element: <ProtectedRoute allowedRoles={["user"]} />,
+    element: <ProtectedRoute allowedRoles={["staff", "admin"]} />,
     children: [
-      { path: "/account", element: <Placeholder title="My Account" /> },
+      { path: "/account", element: <MyAccountPage /> },
+      { path: "/my-invoices", element: <MySubscriptionInvoicesPage /> },
     ],
   },
 

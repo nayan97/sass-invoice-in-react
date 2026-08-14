@@ -44,7 +44,7 @@ const Register: React.FC = () => {
 
       // Fresh registration → no company yet, send to onboarding / dashboard
       const params     = new URLSearchParams(window.location.search);
-      const redirectTo = params.get("redirect") || "/dashboard";
+      const redirectTo = params.get("redirect") || "/login";
       navigate(redirectTo);
 
     } catch (err: any) {

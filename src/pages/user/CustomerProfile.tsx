@@ -45,7 +45,7 @@ const CustomerProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans text-[#333333]">
-      <div className="max-w-2xl mx-auto px-4 py-10">
+      <div className="max-w-3xl mx-auto px-4 py-10">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -72,9 +72,8 @@ const CustomerProfile: React.FC = () => {
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold uppercase tracking-wide transition-colors ${
-                tab === key ? "bg-[#2D8A75] text-white" : "text-gray-500 hover:bg-gray-50"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold uppercase tracking-wide transition-colors ${tab === key ? "bg-[#2D8A75] text-white" : "text-gray-500 hover:bg-gray-50"
+                }`}
             >
               <Icon size={14} />
               {label}
@@ -124,30 +123,54 @@ const CustomerProfile: React.FC = () => {
                 {!isInvoicesLoading && invoices?.data.length === 0 && (
                   <p className="text-sm text-gray-400 text-center py-10">No invoices yet.</p>
                 )}
-                <div className="space-y-2">
-                  {invoices?.data.map((inv) => (
-                    <a
-                      key={inv.id}
-                      href={`/invoices/${inv.public_token}`}
-                      className="flex items-center justify-between border border-gray-100 rounded-lg px-4 py-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{inv.invoice_number}</p>
-                        <p className="text-xs text-gray-400">{new Date(inv.created_at).toLocaleDateString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-slate-800">{inv.total}</p>
-                        <span className="text-[10px] uppercase tracking-wide text-gray-400">{inv.status}</span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
+                {!isInvoicesLoading && invoices && invoices.data.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-400">
+                          <th className="px-4 py-3 font-medium">Invoice</th>
+                          <th className="px-4 py-3 font-medium">Date</th>
+                          <th className="px-4 py-3 font-medium">Due Date</th>
+                          <th className="px-4 py-3 font-medium text-right">Total</th>
+                          <th className="px-4 py-3 font-medium">Status</th>
+                          <th className="px-4 py-3 font-medium text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {invoices.data.map((inv) => (
+                          <tr
+                            key={inv.id}
+                            className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                          >
+                            <td className="px-4 py-3 font-semibold text-slate-800">{inv.invoice_no}</td>
+                            <td className="px-4 py-3 text-xs text-gray-400">
+                              {new Date(inv.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 text-right font-semibold text-slate-800"> {new Date(inv.due_date).toLocaleDateString()}</td>
+                            <td className="px-4 py-3 text-right font-semibold text-slate-800">{inv.grand_total}</td>
+                            <td className="px-4 py-3">
+                              <span className="text-[10px] uppercase tracking-wide text-gray-400">{inv.status}</span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <a
+                                href={`/pay/invoice/${inv.public_token}`}
+                                className="inline-block text-xs font-medium text-[#2D8A75] hover:underline"
+                              >
+                                View
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

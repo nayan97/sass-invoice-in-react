@@ -1,7 +1,6 @@
-import { baseApi } from "./baseApi";
+import { customerBaseApi } from "./customerBaseApi";
 
-// ─── Types ──────────────────────────────────────────────────────────────
-
+// ─── Types (আগের মতোই থাকবে) ──────────────────────────────────────────
 export interface CustomerAddress {
   id: number;
   label: string;
@@ -21,10 +20,11 @@ export interface CustomerProfileData {
 
 export interface CustomerInvoiceListItem {
   id: number;
-  invoice_number: string;
+  invoice_no: string;
   public_token: string;
-  total: string;
+  grand_total: string;
   status: string;
+  due_date:string;
   created_at: string;
 }
 
@@ -36,15 +36,14 @@ interface PaginatedResponse<T> {
 
 // ─── API ────────────────────────────────────────────────────────────────
 
-export const customerPortalApi = baseApi.injectEndpoints({
+export const customerPortalApi = customerBaseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCustomerProfile: builder.query<CustomerProfileData, { company: string }>({
       query: ({ company }) => `/customer-portal/${company}/profile`,
-      providesTags: ["CustomerProfile"],
+      providesTags: ["CustomerPortalProfile"],
     }),
 
-    updateCustomerProfile: builder.mutation<
-      CustomerProfileData,
+    updateCustomerProfile: builder.mutation<CustomerProfileData,
       { company: string; name?: string; phone?: string }
     >({
       query: ({ company, ...body }) => ({
@@ -52,16 +51,15 @@ export const customerPortalApi = baseApi.injectEndpoints({
         method: "PUT",
         body,
       }),
-      invalidatesTags: ["CustomerProfile"],
+      invalidatesTags: ["CustomerPortalProfile"],
     }),
 
     getCustomerAddresses: builder.query<CustomerAddress[], { company: string }>({
       query: ({ company }) => `/customer-portal/${company}/addresses`,
-      providesTags: ["CustomerAddress"],
+      providesTags: ["CustomerPortalAddress"],
     }),
 
-    createCustomerAddress: builder.mutation<
-      CustomerAddress,
+    createCustomerAddress: builder.mutation<CustomerAddress,
       { company: string; label: string; line1: string; line2?: string; city: string; is_default?: boolean }
     >({
       query: ({ company, ...body }) => ({
@@ -69,11 +67,10 @@ export const customerPortalApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["CustomerAddress"],
+      invalidatesTags: ["CustomerPortalAddress"],
     }),
 
-    updateCustomerAddress: builder.mutation<
-      CustomerAddress,
+    updateCustomerAddress: builder.mutation<CustomerAddress,
       { company: string; id: number; label?: string; line1?: string; line2?: string; city?: string; is_default?: boolean }
     >({
       query: ({ company, id, ...body }) => ({
@@ -81,7 +78,7 @@ export const customerPortalApi = baseApi.injectEndpoints({
         method: "PUT",
         body,
       }),
-      invalidatesTags: ["CustomerAddress"],
+      invalidatesTags: ["CustomerPortalAddress"],
     }),
 
     deleteCustomerAddress: builder.mutation<{ message: string }, { company: string; id: number }>({
@@ -89,7 +86,7 @@ export const customerPortalApi = baseApi.injectEndpoints({
         url: `/customer-portal/${company}/addresses/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["CustomerAddress"],
+      invalidatesTags: ["CustomerPortalAddress"],
     }),
 
     getCustomerInvoices: builder.query<PaginatedResponse<CustomerInvoiceListItem>, { company: string }>({

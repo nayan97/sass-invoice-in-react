@@ -1,21 +1,29 @@
 import React, { useState } from "react";
+import { LogOut, LayoutDashboard } from "lucide-react";
+import { logout } from "@/store/authSlice";
 import { Link, useNavigate } from "react-router";
-import { Menu, X, ArrowRight, ShieldCheck } from "lucide-react";
-import { useSelector } from "react-redux";
+import { Menu, X, Settings, ShieldCheck,  } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
 
 export const Navbar: React.FC = () => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    
+
     // Check authentication state
     const isAuthenticated = useSelector((state: RootState) => !!state.auth?.access_token);
-
+    const user = useSelector((state: RootState) => state.auth?.user);
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate("/login");
+    };
     return (
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    
+
                     {/* LEFT: Logo */}
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
                         <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
@@ -42,23 +50,65 @@ export const Navbar: React.FC = () => {
                     {/* RIGHT: Login / Dashboard Button */}
                     <div className="hidden md:flex items-center gap-4">
                         {isAuthenticated ? (
-                            <button
-                                onClick={() => navigate("/dashboard")}
-                                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow-sm hover:shadow flex items-center gap-1.5"
-                            >
-                                Dashboard <ArrowRight className="w-4 h-4" />
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                                    className="flex items-center gap-2"
+                                >
+                                    {user?.name ?? "Account"}
+                                </button>
+
+                                {dropdownOpen && (
+                                    <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                                        <div className="px-4 py-2 border-b border-slate-100">
+                                            <p className="text-xs text-slate-500 truncate">
+                                                {user?.email}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            onClick={() => {
+                                                navigate("/dashboard");
+                                                setDropdownOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50"
+                                        >
+                                            <LayoutDashboard className="w-4 h-4" />
+                                            Dashboard
+                                        </button>
+                                              <button
+                                            onClick={() => {
+                                                navigate("/account");
+                                                setDropdownOpen(false);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50"
+                                        >
+                                            <Settings className="w-4 h-4" />
+                                            Account Settings
+                                        </button>
+
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <>
                                 <Link
                                     to="/login"
-                                    className="text-sm font-semibold text-gray-700 hover:text-blue-600 transition"
+                                    className="text-sm font-semibold text-gray-700 hover:text-blue-600"
                                 >
                                     Customer Login
                                 </Link>
+
                                 <Link
                                     to="/register"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4.5 py-2 rounded-lg transition shadow-sm hover:shadow"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4.5 py-2 rounded-lg"
                                 >
                                     Get Started Free
                                 </Link>

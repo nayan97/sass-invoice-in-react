@@ -371,7 +371,7 @@ const PricingPage: React.FC = () => {
     const handleSubscriptionSuccess = () => {
         setModal(null);
         setSelectedPlan(null);
-        navigate("/dashboard");
+        navigate("/login");
     };
 
     const closeAll = () => {

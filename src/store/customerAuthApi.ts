@@ -1,6 +1,6 @@
-import { baseApi } from "./baseApi";
+import { customerBaseApi } from "./customerBaseApi";
 
-export const customerAuthApi = baseApi.injectEndpoints({
+export const customerAuthApi = customerBaseApi.injectEndpoints({
   endpoints: (builder) => ({
     requestCustomerOtp: builder.mutation<
       { message: string },
